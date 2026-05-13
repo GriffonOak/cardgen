@@ -1,0 +1,6 @@
+Name,Slot Type,Weight,HP,On Build Text,Ability 1,Ability 2,Ability 3
+Big Gun,HAND,8,6,,[PHASE_2] Shoot: Target [TARGET_STRAIGHT 6] | 2[ENERGY] => 1[DAMAGE],,
+Tower Shield,HAND,8,7,,[PHASE_2] Block: 4[ENERGY] => 4[BLOCK],,
+Swarm Missile,HAND,8,4,,[PHASE_2] Unleash: Target [TARGET_ANY 3] | 3[ENERGY] => 2[DAMAGE],,
+Railgun,HAND,10,6,,,,
+Greathammer,TWO_HAND,10,6,,,,
