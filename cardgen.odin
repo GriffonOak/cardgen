@@ -12,6 +12,13 @@ _ :: runtime
 _ :: strings
 
 
+Size :: enum {
+    Big,
+    Smol,
+}
+
+size: Size = .Smol
+
 Font_ID :: enum {
     Default,
 }
@@ -50,7 +57,7 @@ Card_Ability :: struct {
 Card :: struct {
     name: string,
     slots: []Slot_Kind,
-    weight, max_hp: int,
+    weight, max_hp, price: int,
     abilities: []Card_Ability,
 }
 
@@ -111,7 +118,13 @@ main :: proc() {
     clay.Initialize(arena, {1000, 1400}, {})
     clay.SetMeasureTextFunction(measure_text, nil)
 
-    rl.InitWindow(1000, 1400, "Card")
+    if size == .Big {
+        rl.InitWindow(1000, 1400, "Card")
+    } else {
+        rl.InitWindow(500, 700, "Card")
+    }
+
+    main_texture := rl.LoadRenderTexture(1000, 1400)
 
     for dir_file in slot_icons {
         image := rl.LoadImageFromMemory(".png", raw_data(dir_file.data), i32(len(dir_file.data)))
@@ -142,8 +155,6 @@ main :: proc() {
 
     toggle: bool
 
-    the_card := big_gun_card
-
     for !rl.WindowShouldClose() {
 
         if rl.IsKeyPressed(.SPACE) {
@@ -153,155 +164,27 @@ main :: proc() {
 
         clay.BeginLayout()
 
-        if clay.UI()({
-            layout = {
-                sizing = {
-                    clay.SizingGrow(),
-                    clay.SizingGrow(),
-                },
-                childAlignment = {
-                    x = .Center,
-                    y = .Top,
-                },
-                padding = clay.PaddingAll(10),
-                childGap = 10,
-                layoutDirection = .TopToBottom,
-            },
-            backgroundColor = {255, 255, 255, 255},
-        }) {
-            if clay.UI()({
-                layout = {
-                    sizing = {
-                        clay.SizingGrow(),
-                        clay.SizingFixed(160),
-                    },
-                    childAlignment = {
-                        x = .Center,
-                        y = .Center,
-                    },
-                },
-                cornerRadius = clay.CornerRadiusAll(90),
-                backgroundColor = {180, 180, 180, 255},
-            }) {
-                if clay.UI()({  // Slot Icon
-                    layout = {
-                        padding = clay.PaddingAll(20)
-                    },
-                    floating = {
-                        attachTo = .Parent,
-                        attachment = {
-                            element = .LeftCenter,
-                            parent = .LeftCenter,
-                        },
-                    },
-                }) {
-                    if clay.UI()({
-                        layout = {
-                            sizing = { clay.SizingFixed(120), clay.SizingFixed(120) },
-                        },
-                        image = {
-                            &slot_images[the_card.slots[0]],
-                        },
-                    }) {}
-                }
-                clay.TextDynamic(the_card.name, clay.TextConfig({
-                    fontId = 0,
-                    fontSize = 125,
-                    textColor = {0, 0, 0, 255},
-                }))
-                if clay.UI()({  // Weight icon & number
-                    layout = {
-                        padding = {
-                            left = 20,
-                            top = 20,
-                            right = 20,
-                            bottom = 20,
-                        },
-                        childAlignment = {
-                            y = .Center,
-                        },
-                    },
-                    border = {
-                        color = {0, 0, 0, 255},
-                        width = {
-                            right = 10 if toggle else 0,
-                            bottom = 10 if toggle else 0,
-                        },
-                    },
-                    floating = {
-                        attachTo = .Parent,
-                        attachment = {
-                            element = .RightCenter,
-                            parent = .RightCenter,
-                        },
-                        offset = {-20, 0},
-                    },
-                }) {
-                    if clay.UI()({
-                        layout = {
-                            sizing = { clay.SizingFixed(100), clay.SizingFixed(100) },
-                        },
-                        image = {
-                            &font_icon_images[.Weight],
-                        },
-                    }) {}
-                    clay.TextDynamic(fmt.tprintf("%d", the_card.weight), clay.TextConfig({
-                        fontId = 0,
-                        fontSize = 120,
-                        textColor = {0, 0, 0, 255},
-                    }))
-                }
-            }
-            if clay.UI()({
-                layout = {
-                    sizing = {
-                        clay.SizingGrow(),
-                        clay.SizingGrow(),
-                    },
-                },
-            }) {}
-            for ability in the_card.abilities {
-                if clay.UI()({
-                    layout = {
-                        sizing = {
-                            clay.SizingGrow(),
-                            clay.SizingFit({min = 200}),
-                        },
-                        childAlignment = {
-                            x = .Center,
-                            y = .Center,
-                        },
-                    },
-                    backgroundColor = card_ability_background_colors[ability.kind],
-                }) {
-                    clay.TextDynamic(ability.text, clay.TextConfig({
-                        fontId = 0,
-                        fontSize = 80,
-                        textColor = {0, 0, 0, 255},
-                    }))
-                }
-            }
-        }
+        card_layout(big_gun_card)
 
         commands := clay.EndLayout()
 
-        rl.BeginDrawing()
+        rl.BeginDrawing(); {
+            defer rl.EndDrawing()
 
-        rl.ClearBackground(rl.MAGENTA)
+            rl.ClearBackground(rl.MAGENTA)
 
-        // rl.BeginTextureMode(texture)
+            rl.BeginTextureMode(main_texture); {
+                defer rl.EndTextureMode()
 
-        rl.ClearBackground(rl.WHITE)
+                rl.ClearBackground(rl.WHITE)
 
-        clay_raylib_render(&commands)
+                clay_raylib_render(&commands)
+            }
 
-        // rl.DrawLineEx({20, 20}, {20, 20 + 128}, 5, rl.MAGENTA)
-
-        // rl.EndTextureMode()
-
-        // rl.DrawTexturePro(texture.texture, {0, 0, 125, -175}, {0, 0, 1000, 1400}, {}, 0, rl.WHITE)
-
-        rl.EndDrawing()
+            dest_rect: rl.Rectangle = {0, 0, 500, 700} if size == .Smol else {0, 0, 1000, 1400}
+            rl.SetTextureFilter(main_texture.texture, .BILINEAR)
+            rl.DrawTexturePro(main_texture.texture, {0, 0, 1000, -1400}, dest_rect, {}, 0, rl.WHITE)
+        }
 
         free_all(context.temp_allocator)
     }
