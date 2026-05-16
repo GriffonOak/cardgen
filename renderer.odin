@@ -5,6 +5,8 @@ import "base:runtime"
 import "core:math"
 import "core:strings"
 import "core:unicode/utf8"
+import "core:c"
+import "core:fmt"
 import rl "vendor:raylib"
 
 Raylib_Font :: struct {
@@ -19,7 +21,23 @@ clay_color_to_rl_color :: proc(color: clay.Color) -> rl.Color {
 raylib_fonts := [dynamic]Raylib_Font{}
 
 // Alias for compatibility, default to ascii support
-measure_text :: measure_text_ascii
+// measure_text :: measure_text_ascii
+
+measure_text :: proc "c" (text: clay.StringSlice, config: ^clay.TextElementConfig, userData: rawptr) -> clay.Dimensions {
+	context = runtime.default_context()
+	line_width: f32 = 0
+
+	text_str := string(text.chars[:text.length])
+	for token in split_font_string_into_tokens(text_str) {
+		switch typed_token in token {
+		case string:
+			line_width += measure_text_ascii_string(typed_token, config, userData).width
+		case Font_Icon_Kind:
+			line_width += f32(config.fontSize)
+		}
+	}
+	return {line_width, f32(config.fontSize)}
+}
 
 measure_text_unicode :: proc "c" (text: clay.StringSlice, config: ^clay.TextElementConfig, userData: rawptr) -> clay.Dimensions {
 	// Needed for grapheme_count
@@ -88,6 +106,36 @@ measure_text_ascii :: proc "c" (text: clay.StringSlice, config: ^clay.TextElemen
 	return {width = line_width * scaleFactor + total_spacing, height = f32(config.fontSize)}
 }
 
+measure_text_ascii_string :: proc "c" (text_str: string, config: ^clay.TextElementConfig, userData: rawptr) -> clay.Dimensions {
+	line_width: f32 = 0
+
+	font := raylib_fonts[config.fontId].font
+
+	for i in 0 ..< len(text_str) {
+		glyph_index := text_str[i] - 32
+
+		glyph := font.glyphs[glyph_index]
+
+		if glyph.advanceX != 0 {
+			line_width += f32(glyph.advanceX)
+		} else {
+			line_width += font.recs[glyph_index].width + f32(font.glyphs[glyph_index].offsetX)
+		}
+	}
+
+	scaleFactor := f32(config.fontSize) / f32(font.baseSize)
+
+	// Note:
+	//   I'd expect this to be `len(text_str) - 1`,
+	//   but that seems to be one letterSpacing too small
+	//   maybe that's a raylib bug, maybe that's Clay?
+	total_spacing := f32(len(text_str)) * f32(config.letterSpacing)
+
+	return {width = line_width * scaleFactor + total_spacing, height = f32(config.fontSize)}
+}
+
+
+
 clay_raylib_render :: proc(render_commands: ^clay.ClayArray(clay.RenderCommand), allocator := context.temp_allocator) {
 	overlay_colors := make([dynamic]clay.Color, allocator)
 	for i in 0 ..< render_commands.length {
@@ -103,10 +151,26 @@ clay_raylib_render :: proc(render_commands: ^clay.ClayArray(clay.RenderCommand),
 
 			// Raylib uses C strings instead of Odin strings, so we need to clone
 			// Assume this will be freed elsewhere since we default to the temp allocator
-			cstr_text := strings.clone_to_cstring(text, allocator)
+			pos := Vec2{bounds.x, bounds.y}
+			for token in split_font_string_into_tokens(text) {
+				switch typed_token in token {
+				case string:
+					cstr_text := strings.clone_to_cstring(typed_token, allocator)
+					font := raylib_fonts[config.fontId].font
+					rl.DrawTextEx(font, cstr_text, pos, f32(config.fontSize), f32(config.letterSpacing), clay_color_to_rl_color(config.textColor))
+					width := measure_text_ascii_string(typed_token, clay.TextConfig({fontId = config.fontId, fontSize = config.fontSize}), render_command.userData).width
+					pos.x += width
+				case Font_Icon_Kind:
+					texture := font_icon_images[typed_token]
+					rl.DrawTextureEx(texture, pos, 0, f32(config.fontSize) / f32(texture.height), rl.WHITE)
+					pos.x += f32(config.fontSize)
+				}
+			}
 
-			font := raylib_fonts[config.fontId].font
-			rl.DrawTextEx(font, cstr_text, {bounds.x, bounds.y}, f32(config.fontSize), f32(config.letterSpacing), clay_color_to_rl_color(config.textColor))
+			// cstr_text := strings.clone_to_cstring(text, allocator)
+
+			// font := raylib_fonts[config.fontId].font
+			// rl.DrawTextEx(font, cstr_text, {bounds.x, bounds.y}, f32(config.fontSize), f32(config.letterSpacing), clay_color_to_rl_color(config.textColor))
 		case .Image:
 			config := render_command.renderData.image
 			tint: clay.Color

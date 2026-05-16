@@ -4,6 +4,7 @@ import clay "clay-odin"
 import rl "vendor:raylib"
 import "base:runtime"
 import "core:strings"
+import "core:reflect"
 import "core:os"
 import "core:fmt"
 import "core:encoding/csv"
@@ -11,9 +12,10 @@ import "core:encoding/csv"
 _ :: runtime
 _ :: strings
 
+Vec2 :: [2]f32
 
 Size :: enum {
-    Big,
+    Beeg,
     Smol,
 }
 
@@ -35,6 +37,14 @@ Slot_Kind :: enum {
 
 Font_Icon_Kind :: enum {
     Weight,
+    HP,
+    Energy,
+    Damage,
+}
+
+Text_Token :: union {
+    string,
+    Font_Icon_Kind,
 }
 
 Card_Ability_Kind :: enum {
@@ -48,10 +58,33 @@ card_ability_background_colors := #partial [Card_Ability_Kind]clay.Color {
     .Attack = {230, 160, 150, 255}
 }
 
+Targeting_Kind :: enum {
+    Self,
+    Adjacent,
+    Surrounding,
+    Straight,
+    Ranged,
+}
+
+Card_Ability_Targeting :: struct {
+    kind: Targeting_Kind,
+    range: int,
+    precision: int,
+}
+
+Card_Ability_Timing :: enum {
+    None,
+    Phase_1,
+    Phase_2,
+    Phase_3,
+}
+
 Card_Ability :: struct {
     name: string,
     text: string,
     kind: Card_Ability_Kind,
+    timing: Card_Ability_Timing,
+    targeting: Card_Ability_Targeting,
 }
 
 Card :: struct {
@@ -59,6 +92,7 @@ Card :: struct {
     slots: []Slot_Kind,
     weight, max_hp, price: int,
     abilities: []Card_Ability,
+    flavour: string,
 }
 
 big_gun_card := Card {
@@ -67,11 +101,22 @@ big_gun_card := Card {
     weight = 8,
     max_hp = 6,
     abilities = {
-        Card_Ability {
-            text = "2[Energy] => 1[Damage]",
+        {
+            name = "Shoot",
+            text = "2[Energy] => 1[Damage] => 3[Energy] + 2[Energy]",
+            // text = "2 Energy => 1 Damage",
+            kind = .Attack,
+            timing = .Phase_2,
+            targeting = {
+                kind = .Straight,
+                range = 6,
+            }
         },
     },
+    // flavour = "Spray and pray."
 }
+
+
 
 slot_icons := #load_directory("assets/slot_icons")
 font_icons := #load_directory("assets/font_icons")
@@ -103,14 +148,56 @@ font_icon_images: [Font_Icon_Kind]rl.Texture2D
 //     return transmute(clay.Dimensions) rl.MeasureTextEx(font, text_cstring, text_font_size, text_spacing)
 // }
 
+split_font_string_into_tokens :: proc(str: string) -> []Text_Token {
+    arr := make([dynamic]Text_Token, context.temp_allocator)
+
+    text_string := str
+    run_length := 0
+
+    for i := 0; i < len(str); i += 1 {
+		if str[i] == '[' {
+			if run_length > 0 {
+				append(&arr, text_string[:run_length])
+                run_length = 0
+			}
+
+            i += 1
+            icon_name := str[i:]
+            icon_name_length := 0
+			for ; str[i] != ']' && i < len(str); i += 1 {
+                icon_name_length += 1
+            }
+			if str[i] != ']' {
+				fmt.println("Unterminated bracket in font icon string!!!")
+                return {}
+			}
+
+            icon_name = icon_name[:icon_name_length]
+            icon_enum, ok := reflect.enum_from_name(Font_Icon_Kind, icon_name)
+            if !ok {
+                fmt.println("Unknown icon name: ", icon_name)
+                return {}
+            }
+            append(&arr, icon_enum)
+			text_string = str[i+1:]
+		} else {
+			run_length += 1
+		}
+	}
+	if run_length > 0 {
+		append(&arr, text_string[:run_length])
+	}
+    return arr[:]
+}
+
 main :: proc() {
+
+    fmt.println(split_font_string_into_tokens(big_gun_card.abilities[0].text))
 
     cards_bytes, _ := os.read_entire_file("cards.csv", context.allocator)
     cards_string := string(cards_bytes)
-    fmt.println(cards_string)
     
     records, _ := csv.read_all_from_string(cards_string)
-    fmt.println(records[1])
 
     min_memory_size := clay.MinMemorySize()
     memory := make([^]u8, min_memory_size)
@@ -118,7 +205,7 @@ main :: proc() {
     clay.Initialize(arena, {1000, 1400}, {})
     clay.SetMeasureTextFunction(measure_text, nil)
 
-    if size == .Big {
+    if size == .Beeg {
         rl.InitWindow(1000, 1400, "Card")
     } else {
         rl.InitWindow(500, 700, "Card")
@@ -143,12 +230,11 @@ main :: proc() {
         texture := rl.LoadTextureFromImage(image)
         switch dir_file.name {
         case "weight.png": font_icon_images[.Weight] = texture
+        case "HP.png": font_icon_images[.HP] = texture
+        case "energy.png": font_icon_images[.Energy] = texture
+        case "damage.png": font_icon_images[.Damage] = texture
         }
     }
-
-    // text_string: cstring = "Big Gun ->→😭"
-    // count: i32
-    // codepoints := rl.LoadCodepoints(text_string, &count)
 
     font := rl.LoadFontEx("NotoSans-Regular.ttf", 200, nil, 0)
     append(&raylib_fonts, Raylib_Font{0, font})
