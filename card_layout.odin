@@ -3,6 +3,8 @@ package cardgen
 import clay "clay-odin"
 import "core:fmt"
 
+
+
 clay_ability :: proc(ability: Card_Ability) {
     if clay.UI()({
         layout = {
@@ -14,13 +16,23 @@ clay_ability :: proc(ability: Card_Ability) {
                 x = .Center,
                 y = .Center,
             },
+            layoutDirection = .TopToBottom,
+            padding = clay.PaddingAll(20),
+            childGap = 20,
         },
         cornerRadius = clay.CornerRadiusAll(10),
         backgroundColor = card_ability_background_colors[ability.kind],
     }) {
+        if ability.name != "" {
+            clay.TextDynamic(ability.name, clay.TextConfig({
+                fontId = 2,
+                fontSize = 80,
+                textColor = {0, 0, 0, 255},
+            }))
+        }
         clay.TextDynamic(ability.text, clay.TextConfig({
             fontId = 0,
-            fontSize = 80,
+            fontSize = 100,
             textColor = {0, 0, 0, 255},
         }))
     }
@@ -41,7 +53,7 @@ card_layout :: proc(the_card: Card) {
             childGap = 10,
             layoutDirection = .TopToBottom,
         },
-        backgroundColor = {150, 130, 150, 255},
+        backgroundColor = {200, 200, 200, 255},
     }) {
         if clay.UI()({  // Top Bar
             layout = {

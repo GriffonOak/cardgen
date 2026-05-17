@@ -40,6 +40,9 @@ Font_Icon_Kind :: enum {
     HP,
     Energy,
     Damage,
+    Ballistic_Targeting,
+    Melee_Targeting,
+    Straight_Targeting,
 }
 
 Text_Token :: union {
@@ -103,7 +106,7 @@ big_gun_card := Card {
     abilities = {
         {
             name = "Shoot",
-            text = "2[Energy] => 1[Damage] => 3[Energy] + 2[Energy]",
+            text = "2[Energy] => 1[Damage]",
             // text = "2 Energy => 1 Damage",
             kind = .Attack,
             timing = .Phase_2,
@@ -236,8 +239,12 @@ main :: proc() {
         }
     }
 
-    font := rl.LoadFontEx("NotoSans-Regular.ttf", 200, nil, 0)
-    append(&raylib_fonts, Raylib_Font{0, font})
+    regular_font := rl.LoadFontEx("assets/NotoSans-Regular.ttf", 200, nil, 0)
+    italic_font := rl.LoadFontEx("assets/NotoSans-LightItalic.ttf", 200, nil, 0)
+    semibold_font := rl.LoadFontEx("assets/NotoSans-SemiBold.ttf", 200, nil, 0)
+    append(&raylib_fonts, Raylib_Font{0, regular_font})
+    append(&raylib_fonts, Raylib_Font{0, italic_font})
+    append(&raylib_fonts, Raylib_Font{0, semibold_font})
 
     toggle: bool
 
