@@ -20,7 +20,11 @@ clay_ability :: proc(ability: Card_Ability) {
             padding = clay.PaddingAll(20),
             childGap = 20,
         },
-        cornerRadius = clay.CornerRadiusAll(10),
+        border = {
+            color = card_ability_background_colors[ability.kind] * {0.5, 0.5, 0.5, 1},
+            width = clay.BorderOutside(8),
+        },
+        cornerRadius = clay.CornerRadiusAll(40),
         backgroundColor = card_ability_background_colors[ability.kind],
     }) {
         if ability.name != "" {
@@ -35,10 +39,24 @@ clay_ability :: proc(ability: Card_Ability) {
             fontSize = 100,
             textColor = {0, 0, 0, 255},
         }))
+
+        if clay.UI()({
+            floating = {
+                attachTo = .Parent,
+                attachment = {.LeftTop, .LeftTop},
+                offset = {30, 30},
+            },
+        }) {
+            clay.TextDynamic(fmt.tprintf("[%v]", ability.timing), clay.TextConfig({
+                fontId = 0,
+                fontSize = 60,
+                textColor = {0, 0, 0, 255},
+            }))
+        }
     }
 }
 
-card_layout :: proc(the_card: Card) {
+card_layout :: proc(card: Card) {
     if clay.UI()({
         layout = {
             sizing = {
@@ -75,7 +93,7 @@ card_layout :: proc(the_card: Card) {
                     sizing = { clay.SizingFixed(140), clay.SizingFixed(140) },
                 },
                 image = {
-                    &slot_images[the_card.slots[0]],
+                    &slot_images[card.slots[0]],
                 },
             }) {}
             if clay.UI()({  // Spacer
@@ -92,7 +110,7 @@ card_layout :: proc(the_card: Card) {
                     },
                 },
             }) {
-                clay.TextDynamic(the_card.name, clay.TextConfig({
+                clay.TextDynamic(card.name, clay.TextConfig({
                     fontId = 0,
                     fontSize = 100,
                     textColor = {0, 0, 0, 255},
@@ -120,7 +138,7 @@ card_layout :: proc(the_card: Card) {
                         &font_icon_images[.Weight],
                     },
                 }) {}
-                clay.TextDynamic(fmt.tprintf("%d", the_card.weight), clay.TextConfig({
+                clay.TextDynamic(fmt.tprintf("%d", card.weight), clay.TextConfig({
                     fontId = 0,
                     fontSize = 90,
                     textColor = {0, 0, 0, 255},
@@ -135,7 +153,7 @@ card_layout :: proc(the_card: Card) {
                 },
             },
         }) {}
-        for ability in the_card.abilities {
+        for ability in card.abilities {
             clay_ability(ability)
         }
         if clay.UI()({  // Bottom bar
@@ -148,7 +166,7 @@ card_layout :: proc(the_card: Card) {
                 layoutDirection = .LeftToRight,
             },
         }) {
-            if clay.UI() ({
+            if clay.UI() ({  // Cost
                 layout = {
                     padding = clay.PaddingAll(20),
                     childAlignment = {
@@ -156,12 +174,12 @@ card_layout :: proc(the_card: Card) {
                     }
                 },
                 cornerRadius = clay.CornerRadiusAll(100),
-                backgroundColor = {200, 255, 200, 255},
+                backgroundColor = {0, 80, 20, 255},
             }) {
-                clay.TextDynamic(fmt.tprintf("$%d", the_card.price), clay.TextConfig({
+                clay.TextDynamic(fmt.tprintf("$%d", card.price), clay.TextConfig({
                     fontId = 0,
                     fontSize = 100,
-                    textColor = {0, 0, 0, 255},
+                    textColor = {255, 255, 255, 255},
                 }))
             }
             if clay.UI()({  // Bottom bar spacer
@@ -170,8 +188,18 @@ card_layout :: proc(the_card: Card) {
                         clay.SizingGrow(),
                         clay.SizingFit(),
                     },
+                    childAlignment = {
+                        x = .Center,
+                        y = .Center,
+                    },
                 },
-            }) {}
+            }) {
+                clay.TextDynamic(card.flavour, clay.TextConfig({
+                    fontId = 1,
+                    fontSize = 60,
+                    textColor = {0, 0, 0, 255},
+                }))
+            }
             if clay.UI()({
                 layout = {
                     sizing = {
@@ -183,10 +211,10 @@ card_layout :: proc(the_card: Card) {
                     }
                 },
                 image = {
-                    &font_icon_images[.HP],
+                    &font_icon_images[.Hp],
                 },
             }) {
-                clay.TextDynamic(fmt.tprintf("%d", the_card.max_hp), clay.TextConfig({
+                clay.TextDynamic(fmt.tprintf("%d", card.max_hp), clay.TextConfig({
                     fontId = 0,
                     fontSize = 120,
                     textColor = {0, 0, 0, 255},

@@ -37,12 +37,15 @@ Slot_Kind :: enum {
 
 Font_Icon_Kind :: enum {
     Weight,
-    HP,
+    Hp,
     Energy,
     Damage,
     Ballistic_Targeting,
-    Melee_Targeting,
+    Adjacent_Targeting,
     Straight_Targeting,
+    Phase_1,
+    Phase_2,
+    Phase_3,
 }
 
 Text_Token :: union {
@@ -62,6 +65,7 @@ card_ability_background_colors := #partial [Card_Ability_Kind]clay.Color {
 }
 
 Targeting_Kind :: enum {
+    None,
     Self,
     Adjacent,
     Surrounding,
@@ -105,7 +109,7 @@ big_gun_card := Card {
     max_hp = 6,
     abilities = {
         {
-            name = "Shoot",
+            name = "Fire!",
             text = "2[Energy] => 1[Damage]",
             // text = "2 Energy => 1 Damage",
             kind = .Attack,
@@ -116,7 +120,8 @@ big_gun_card := Card {
             }
         },
     },
-    // flavour = "Spray and pray."
+    // flavour = "Spray and pray.",
+    flavour = "\"Quantity has a quality all its own.\"",
 }
 
 
@@ -231,12 +236,19 @@ main :: proc() {
     for dir_file in font_icons {
         image := rl.LoadImageFromMemory(".png", raw_data(dir_file.data), i32(len(dir_file.data)))
         texture := rl.LoadTextureFromImage(image)
-        switch dir_file.name {
-        case "weight.png": font_icon_images[.Weight] = texture
-        case "HP.png": font_icon_images[.HP] = texture
-        case "energy.png": font_icon_images[.Energy] = texture
-        case "damage.png": font_icon_images[.Damage] = texture
+        prefix := strings.to_ada_case(strings.split(dir_file.name, ".", context.temp_allocator)[0], context.temp_allocator)
+        enum_value, ok := reflect.enum_from_name(Font_Icon_Kind, prefix)
+        if !ok {
+            fmt.println("Unable to parse enum name!", prefix)
+        } else {
+            font_icon_images[enum_value] = texture
         }
+        // switch dir_file.name {
+        // case "weight.png": font_icon_images[.Weight] = texture
+        // case "HP.png": font_icon_images[.HP] = texture
+        // case "energy.png": font_icon_images[.Energy] = texture
+        // case "damage.png": font_icon_images[.Damage] = texture
+        // }
     }
 
     regular_font := rl.LoadFontEx("assets/NotoSans-Regular.ttf", 200, nil, 0)
