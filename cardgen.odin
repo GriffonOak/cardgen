@@ -8,6 +8,7 @@ import "core:reflect"
 import "core:os"
 import "core:fmt"
 import "core:encoding/csv"
+import "core:strconv"
 
 _ :: runtime
 _ :: strings
@@ -19,10 +20,12 @@ Size :: enum {
     Smol,
 }
 
-size: Size = .Smol
+size: Size = .Beeg
 
-Font_ID :: enum {
+Font_ID :: enum u16 {
     Default,
+    Italic,
+    Bold,
 }
 
 card_fonts: [Font_ID]rl.Font
@@ -35,22 +38,45 @@ Slot_Kind :: enum {
     Mod,
 }
 
+Targeting_Kind :: enum {
+    None,
+    Self,
+    Adjacent,
+    Surrounding,
+    Straight,
+    Ballistic,
+}
+
 Font_Icon_Kind :: enum {
     Weight,
     Hp,
     Energy,
     Damage,
-    Ballistic_Targeting,
-    Adjacent_Targeting,
-    Straight_Targeting,
+    Block,
+    Precision,
+    Slot_Head,
+    Slot_Torso,
+    Slot_Hand,
+    Slot_Legs,
+    Slot_Mod,
+    Targeting_Self,
+    Targeting_Adjacent,
+    Targeting_Surrounding,
+    Targeting_Straight,
+    Targeting_Ballistic,
     Phase_1,
     Phase_2,
     Phase_3,
 }
 
+Icon_Token :: struct {
+    icon_kind: Font_Icon_Kind,
+    number: Maybe(int),
+}
+
 Text_Token :: union {
     string,
-    Font_Icon_Kind,
+    Icon_Token,
 }
 
 Card_Ability_Kind :: enum {
@@ -61,16 +87,10 @@ Card_Ability_Kind :: enum {
 }
 
 card_ability_background_colors := #partial [Card_Ability_Kind]clay.Color {
-    .Attack = {230, 160, 150, 255}
-}
-
-Targeting_Kind :: enum {
-    None,
-    Self,
-    Adjacent,
-    Surrounding,
-    Straight,
-    Ranged,
+    .Attack = {230, 160, 150, 255},
+    .Utility = {150, 160, 230, 255},
+    .Movement = {120, 200, 130, 255},
+    .Passive = {230, 170, 230, 255},
 }
 
 Card_Ability_Targeting :: struct {
@@ -91,7 +111,7 @@ Card_Ability :: struct {
     text: string,
     kind: Card_Ability_Kind,
     timing: Card_Ability_Timing,
-    targeting: Card_Ability_Targeting,
+    targeting: []Card_Ability_Targeting,
 }
 
 Card :: struct {
@@ -115,22 +135,40 @@ big_gun_card := Card {
             kind = .Attack,
             timing = .Phase_2,
             targeting = {
-                kind = .Straight,
-                range = 6,
-            }
+                {
+                    kind = .Straight,
+                    range = 6,
+                },
+            },
         },
+        // {
+        //     text = "2[Energy] => 2[Block] on a\nnon-[Slot_Hand] part.",
+        //     kind = .Utility,
+        //     timing = .Phase_2,
+        //     targeting = {
+        //         {
+        //             kind = .Self,
+        //         }
+        //     }
+        // },
+        // {
+        //     text = "=> 2 Boots:D",
+        //     kind = .Movement,
+        //     timing = .Phase_2,
+        // },
+        // {
+        //     text = "You cannot be killed.",
+        //     kind = .Passive,
+        // }
     },
     // flavour = "Spray and pray.",
-    flavour = "\"Quantity has a quality all its own.\"",
+    price = 1,
+    flavour = "\"Quantity has a quality all its own.\"\n    - Joseph Stalin",
 }
 
 
 
-slot_icons := #load_directory("assets/slot_icons")
 font_icons := #load_directory("assets/font_icons")
-
-slot_images: [Slot_Kind]rl.Texture2D
-
 font_icon_images: [Font_Icon_Kind]rl.Texture2D
 
 // measure_text :: proc "c" (
@@ -172,21 +210,28 @@ split_font_string_into_tokens :: proc(str: string) -> []Text_Token {
             i += 1
             icon_name := str[i:]
             icon_name_length := 0
-			for ; str[i] != ']' && i < len(str); i += 1 {
+			for ; i < len(str) && str[i] != ']'; i += 1 {
                 icon_name_length += 1
             }
-			if str[i] != ']' {
-				fmt.println("Unterminated bracket in font icon string!!!")
+			if i >= len(str) || str[i] != ']' {
+				fmt.println("Unterminated bracket in font icon string!!!", str)
                 return {}
 			}
 
             icon_name = icon_name[:icon_name_length]
-            icon_enum, ok := reflect.enum_from_name(Font_Icon_Kind, icon_name)
+            icon_name_tokens := strings.split(icon_name, "-", context.temp_allocator)
+            icon_number: Maybe(int) = nil
+            if len(icon_name_tokens) > 1 {
+                if num, ok := strconv.parse_int(icon_name_tokens[1]); ok {
+                    icon_number = num
+                }
+            } 
+            icon_enum, ok := reflect.enum_from_name(Font_Icon_Kind, icon_name_tokens[0])
             if !ok {
                 fmt.println("Unknown icon name: ", icon_name)
                 return {}
             }
-            append(&arr, icon_enum)
+            append(&arr, Icon_Token{icon_enum, icon_number})
 			text_string = str[i+1:]
 		} else {
 			run_length += 1
@@ -198,9 +243,10 @@ split_font_string_into_tokens :: proc(str: string) -> []Text_Token {
     return arr[:]
 }
 
-main :: proc() {
+WIDTH :: 1000
+HEIGHT :: 1400
 
-    fmt.println(split_font_string_into_tokens(big_gun_card.abilities[0].text))
+main :: proc() {
 
     cards_bytes, _ := os.read_entire_file("cards.csv", context.allocator)
     cards_string := string(cards_bytes)
@@ -210,28 +256,16 @@ main :: proc() {
     min_memory_size := clay.MinMemorySize()
     memory := make([^]u8, min_memory_size)
     arena: clay.Arena = clay.CreateArenaWithCapacityAndMemory(uint(min_memory_size), memory)
-    clay.Initialize(arena, {1000, 1400}, {})
+    clay.Initialize(arena, {WIDTH, HEIGHT}, {})
     clay.SetMeasureTextFunction(measure_text, nil)
 
     if size == .Beeg {
-        rl.InitWindow(1000, 1400, "Card")
+        rl.InitWindow(WIDTH, HEIGHT, "Card")
     } else {
-        rl.InitWindow(500, 700, "Card")
+        rl.InitWindow(WIDTH / 2, HEIGHT / 2, "Card")
     }
 
     main_texture := rl.LoadRenderTexture(1000, 1400)
-
-    for dir_file in slot_icons {
-        image := rl.LoadImageFromMemory(".png", raw_data(dir_file.data), i32(len(dir_file.data)))
-        texture := rl.LoadTextureFromImage(image)
-        switch dir_file.name {
-        case "hand.png": slot_images[.Hand] = texture
-        case "head.png": slot_images[.Head] = texture
-        case "legs.png": slot_images[.Legs] = texture
-        case "mod.png": slot_images[.Mod] = texture
-        case "torso.png": slot_images[.Torso] = texture
-        }
-    }
 
     for dir_file in font_icons {
         image := rl.LoadImageFromMemory(".png", raw_data(dir_file.data), i32(len(dir_file.data)))
@@ -254,9 +288,9 @@ main :: proc() {
     regular_font := rl.LoadFontEx("assets/NotoSans-Regular.ttf", 200, nil, 0)
     italic_font := rl.LoadFontEx("assets/NotoSans-LightItalic.ttf", 200, nil, 0)
     semibold_font := rl.LoadFontEx("assets/NotoSans-SemiBold.ttf", 200, nil, 0)
-    append(&raylib_fonts, Raylib_Font{0, regular_font})
-    append(&raylib_fonts, Raylib_Font{0, italic_font})
-    append(&raylib_fonts, Raylib_Font{0, semibold_font})
+    append(&raylib_fonts, Raylib_Font{u16(Font_ID.Default), regular_font})
+    append(&raylib_fonts, Raylib_Font{u16(Font_ID.Italic), italic_font})
+    append(&raylib_fonts, Raylib_Font{u16(Font_ID.Bold), semibold_font})
 
     toggle: bool
 

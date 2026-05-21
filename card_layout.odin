@@ -2,57 +2,214 @@ package cardgen
 
 import clay "clay-odin"
 import "core:fmt"
+import "core:reflect"
+import "core:strings"
 
+CARD_DEFAULT_BACKGROUND_COLOR :: clay.Color{250, 250, 250, 255}
+CARD_BAR_BACKGROUND_COLOR :: clay.Color{180, 180, 180, 255}
+CARD_BAR_PADDING :: 20
+CARD_BAR_BOUNDARY_HEIGHT :: 10
+CARD_BAR_BOUNDARY_COLOR :: clay.Color{100, 100, 100, 255}
+CARD_BAR_ICON_SIZE :: 140
+CARD_BAR_SECONDARY_ICON_SIZE :: 120
+CARD_BAR_TITLE_FONT_SIZE :: 100
+CARD_BAR_ICON_FONT_SIZE :: 100
+CARD_BAR_WEIGHT_BACKGROUND_COLOR :: clay.Color{100, 100, 100, 255}
 
+CARD_ABILITY_REGION_PADDING :: 20
 
-clay_ability :: proc(ability: Card_Ability) {
+ABILITY_MIN_HEIGHT :: 150
+ABILITY_PADDING_VERTICAL :: 20
+ABILITY_PADDING_HORIZONTAL :: 30
+ABILITY_BORDER_WIDTH :: 10
+ABILITY_FONT_SIZE :: 80
+
+Custom_Data :: union {
+    Card_Ability_Kind,
+}
+
+clay_card_ability :: proc(ability: Card_Ability) {
+    background_color := card_ability_background_colors[ability.kind]
+    alt_color := background_color * {0.5, 0.5, 0.5, 1}
+    custom_data: ^Custom_Data
+    if ability.kind == .Attack || ability.kind == .Passive {
+        custom_data = new(Custom_Data, context.temp_allocator)
+        custom_data^ = ability.kind
+    }
+    border: clay.BorderElementConfig
+    if ability.kind != .Attack && ability.kind != .Passive {
+        border = {
+            width = clay.BorderOutside(ABILITY_BORDER_WIDTH),
+            color = alt_color,
+        }
+    }
+    corner_radius := clay.CornerRadiusAll(ABILITY_MIN_HEIGHT / 2) if ability.kind == .Movement else {}
+
     if clay.UI()({
         layout = {
             sizing = {
                 clay.SizingGrow(),
-                clay.SizingFit({min = 200}),
+                clay.SizingFit({min = ABILITY_MIN_HEIGHT}),
+                // clay.SizingFit(),
             },
             childAlignment = {
                 x = .Center,
                 y = .Center,
             },
-            layoutDirection = .TopToBottom,
-            padding = clay.PaddingAll(20),
-            childGap = 20,
+            // layoutDirection = .TopToBottom,
+            padding = clay.Padding {
+                top = ABILITY_PADDING_VERTICAL,
+                bottom = ABILITY_PADDING_VERTICAL,
+                left = ABILITY_PADDING_HORIZONTAL,
+                right = ABILITY_PADDING_HORIZONTAL,
+            }
         },
-        border = {
-            color = card_ability_background_colors[ability.kind] * {0.5, 0.5, 0.5, 1},
-            width = clay.BorderOutside(8),
-        },
-        cornerRadius = clay.CornerRadiusAll(40),
+        border = border,
+        custom = { custom_data },
+        cornerRadius = corner_radius,
         backgroundColor = card_ability_background_colors[ability.kind],
     }) {
-        if ability.name != "" {
-            clay.TextDynamic(ability.name, clay.TextConfig({
-                fontId = 2,
-                fontSize = 80,
+        builder := strings.builder_make(context.temp_allocator)
+        if ability.timing != .None {
+            fmt.sbprintf(&builder, "[%v]", ability.timing)
+        }
+        for targeting, i in ability.targeting {
+            if i != 0 do fmt.sbprintf(&builder, "/")
+            fmt.sbprintf(&builder, "[Targeting_%v", targeting.kind)
+            if targeting.range > 0 do fmt.sbprintf(&builder, "-%v", targeting.range)
+            fmt.sbprintf(&builder, "]")
+            if targeting.precision > 0 do fmt.sbprintf(&builder, "[Precision-%v]", targeting.precision)
+            // clay.TextDynamic(fmt.tprintf("[Targeting_%v]", targeting.kind), clay.TextConfig({
+
+            // }))
+        }
+        output := strings.to_string(builder)
+        if output != "" {
+            clay.TextDynamic(output, clay.TextConfig({
+                fontId = 0,
+                fontSize = ABILITY_FONT_SIZE,
                 textColor = {0, 0, 0, 255},
             }))
         }
-        clay.TextDynamic(ability.text, clay.TextConfig({
+        if clay.UI()({
+            layout = {sizing = {width = clay.SizingGrow()}},
+        }) {}
+        terms := strings.split(ability.text, "=>", context.temp_allocator)
+        if len(terms) > 2 {
+            fmt.println("Improperly formatted card ability!")
+        }
+        clay.TextDynamic(strings.trim_space(terms[0]), clay.TextConfig({
             fontId = 0,
-            fontSize = 100,
+            fontSize = ABILITY_FONT_SIZE,
             textColor = {0, 0, 0, 255},
         }))
-
-        if clay.UI()({
-            floating = {
-                attachTo = .Parent,
-                attachment = {.LeftTop, .LeftTop},
-                offset = {30, 30},
-            },
-        }) {
-            clay.TextDynamic(fmt.tprintf("[%v]", ability.timing), clay.TextConfig({
+        if len(terms) > 1 {
+            clay.TextDynamic("=> ", clay.TextConfig({
                 fontId = 0,
-                fontSize = 60,
+                fontSize = ABILITY_FONT_SIZE,
+                textColor = {0, 0, 0, 255},
+            }))
+            clay.TextDynamic(strings.trim_space(terms[1]), clay.TextConfig({
+                fontId = 0,
+                fontSize = ABILITY_FONT_SIZE,
                 textColor = {0, 0, 0, 255},
             }))
         }
+        if clay.UI()({
+            layout = {sizing = {width = clay.SizingGrow()}},
+        }) {}
+    }
+}
+
+clay_card_bar_boundary :: proc() {
+    if clay.UI()({
+        layout = {
+            sizing = {
+                clay.SizingGrow(),
+                clay.SizingFixed(CARD_BAR_BOUNDARY_HEIGHT),
+            },
+        },
+        backgroundColor = CARD_BAR_BOUNDARY_COLOR,
+    }) {}
+}
+
+clay_card_weight_icon :: proc(weight: int) {
+    if clay.UI()({  // Weight icon & number
+        layout = {
+            sizing = {
+                clay.SizingFit(),
+                clay.SizingGrow(),
+            },
+            padding = clay.PaddingAll(CARD_BAR_PADDING),
+            childAlignment = {
+                y = .Center,
+            },
+        },
+        backgroundColor = CARD_BAR_WEIGHT_BACKGROUND_COLOR,
+        cornerRadius = clay.CornerRadiusAll(CARD_BAR_ICON_SIZE / 2),
+    }) {
+        if clay.UI()({
+            layout = {
+                sizing = {
+                    clay.SizingFixed(CARD_BAR_ICON_FONT_SIZE),
+                    clay.SizingFixed(CARD_BAR_ICON_FONT_SIZE),
+                },
+            },
+            image = {
+                &font_icon_images[.Weight],
+            },
+        }) {}
+        clay.TextDynamic(fmt.tprintf("%d", weight), clay.TextConfig({
+            fontId = 0,
+            fontSize = CARD_BAR_ICON_FONT_SIZE,
+            textColor = {0, 0, 0, 255},
+        }))
+    }
+}
+
+clay_card_price_icon :: proc(price: int) {
+    if clay.UI() ({  // Price
+        layout = {
+            sizing = {
+                clay.SizingFit({min = CARD_BAR_ICON_SIZE}),
+                clay.SizingFixed(CARD_BAR_ICON_SIZE),
+            },
+            childAlignment = {
+                x = .Center, y = .Center,
+            },
+            padding = clay.PaddingAll(CARD_BAR_PADDING)
+        },
+        cornerRadius = clay.CornerRadiusAll(CARD_BAR_ICON_SIZE / 2),
+        backgroundColor = {0, 80, 20, 255},
+    }) {
+        clay.TextDynamic(fmt.tprintf("$%d", price), clay.TextConfig({
+            fontId = 0,
+            fontSize = CARD_BAR_ICON_FONT_SIZE,
+            textColor = {255, 255, 255, 255},
+        }))
+    }
+}
+
+clay_card_hp_icon :: proc(max_hp: int) {
+    if clay.UI()({
+        layout = {
+            sizing = {
+                clay.SizingFixed(CARD_BAR_ICON_SIZE), clay.SizingFixed(CARD_BAR_ICON_SIZE),
+            },
+            childAlignment = {
+                x = .Center, 
+                y = .Center,
+            }
+        },
+        image = {
+            &font_icon_images[.Hp],
+        },
+    }) {
+        clay.TextDynamic(fmt.tprintf("%d", max_hp), clay.TextConfig({
+            fontId = 0,
+            fontSize = CARD_BAR_ICON_FONT_SIZE,
+            textColor = {0, 0, 0, 255},
+        }))
     }
 }
 
@@ -67,11 +224,9 @@ card_layout :: proc(card: Card) {
                 x = .Center,
                 y = .Top,
             },
-            padding = clay.PaddingAll(10),
-            childGap = 10,
             layoutDirection = .TopToBottom,
         },
-        backgroundColor = {200, 200, 200, 255},
+        backgroundColor = CARD_DEFAULT_BACKGROUND_COLOR
     }) {
         if clay.UI()({  // Top Bar
             layout = {
@@ -79,23 +234,28 @@ card_layout :: proc(card: Card) {
                     clay.SizingGrow(),
                     clay.SizingFit(),
                 },
-                childAlignment = {
-                    y = .Center,
-                },
-                padding = clay.PaddingAll(20),
-                layoutDirection = .LeftToRight,
+                childAlignment = {y = .Center},
+                childGap = CARD_BAR_PADDING,
+                padding = clay.PaddingAll(CARD_BAR_PADDING),
             },
-            cornerRadius = clay.CornerRadiusAll(90),
-            backgroundColor = {180, 180, 180, 255},
+            backgroundColor = CARD_BAR_BACKGROUND_COLOR,
         }) {
-            if clay.UI()({  // Slot Icon
-                layout = {
-                    sizing = { clay.SizingFixed(140), clay.SizingFixed(140) },
-                },
-                image = {
-                    &slot_images[card.slots[0]],
-                },
-            }) {}
+            for slot_kind, i  in card.slots {  // Slot Icons
+                font_icon_name := fmt.tprintf("Slot_%v", slot_kind)
+                font_icon, ok := reflect.enum_from_name(Font_Icon_Kind, font_icon_name)
+                size: f32 = CARD_BAR_ICON_SIZE if i == 0 else CARD_BAR_SECONDARY_ICON_SIZE
+                if clay.UI()({
+                    layout = {
+                        sizing = {
+                            clay.SizingFixed(size),
+                            clay.SizingFixed(size),
+                        },
+                    },
+                    image = {
+                        &font_icon_images[font_icon],
+                    },
+                }) {}
+            }
             if clay.UI()({  // Spacer
                 layout = {
                     sizing = {clay.SizingGrow(), clay.SizingFit()}
@@ -112,75 +272,48 @@ card_layout :: proc(card: Card) {
             }) {
                 clay.TextDynamic(card.name, clay.TextConfig({
                     fontId = 0,
-                    fontSize = 100,
+                    fontSize = CARD_BAR_TITLE_FONT_SIZE,
                     textColor = {0, 0, 0, 255},
                 }))
             }
-            if clay.UI()({  // Weight icon & number
-                layout = {
-                    sizing = {
-                        clay.SizingFit(),
-                        clay.SizingGrow(),
-                    },
-                    padding = clay.PaddingAll(20),
-                    childAlignment = {
-                        y = .Center,
-                    },
-                },
-                backgroundColor = {120, 120, 120, 255},
-                cornerRadius = clay.CornerRadiusAll(100),
-            }) {
-                if clay.UI()({
-                    layout = {
-                        sizing = { clay.SizingFixed(80), clay.SizingFixed(80) },
-                    },
-                    image = {
-                        &font_icon_images[.Weight],
-                    },
-                }) {}
-                clay.TextDynamic(fmt.tprintf("%d", card.weight), clay.TextConfig({
-                    fontId = 0,
-                    fontSize = 90,
-                    textColor = {0, 0, 0, 255},
-                }))
-            }
+            // card_weight_icon(card.weight)
+            clay_card_hp_icon(card.max_hp)
         }
+        clay_card_bar_boundary()
         if clay.UI()({
             layout = {
                 sizing = {
                     clay.SizingGrow(),
                     clay.SizingGrow(),
                 },
-            },
-        }) {}
-        for ability in card.abilities {
-            clay_ability(ability)
+                childAlignment = {
+                    x = .Center,
+                    y = .Bottom,
+                },
+                layoutDirection = .TopToBottom,
+                padding = clay.PaddingAll(CARD_ABILITY_REGION_PADDING),
+                childGap = CARD_ABILITY_REGION_PADDING,
+            }
+        }) {
+            for ability in card.abilities {
+                clay_card_ability(ability)
+            }
         }
+        clay_card_bar_boundary()
         if clay.UI()({  // Bottom bar
             layout = {
                 sizing = {
                     clay.SizingGrow(),
                     clay.SizingFit(),
                 },
+                padding = clay.PaddingAll(CARD_BAR_PADDING),
                 childAlignment = {y = .Center},
                 layoutDirection = .LeftToRight,
             },
+            backgroundColor = CARD_BAR_BACKGROUND_COLOR,
         }) {
-            if clay.UI() ({  // Cost
-                layout = {
-                    padding = clay.PaddingAll(20),
-                    childAlignment = {
-                        x = .Center, y = .Center,
-                    }
-                },
-                cornerRadius = clay.CornerRadiusAll(100),
-                backgroundColor = {0, 80, 20, 255},
-            }) {
-                clay.TextDynamic(fmt.tprintf("$%d", card.price), clay.TextConfig({
-                    fontId = 0,
-                    fontSize = 100,
-                    textColor = {255, 255, 255, 255},
-                }))
+            if card.price != 0 {
+                clay_card_price_icon(card.price)
             }
             if clay.UI()({  // Bottom bar spacer
                 layout = {
@@ -196,30 +329,12 @@ card_layout :: proc(card: Card) {
             }) {
                 clay.TextDynamic(card.flavour, clay.TextConfig({
                     fontId = 1,
-                    fontSize = 60,
+                    fontSize = 55,
                     textColor = {0, 0, 0, 255},
                 }))
             }
-            if clay.UI()({
-                layout = {
-                    sizing = {
-                        clay.SizingFixed(140), clay.SizingFixed(140),
-                    },
-                    childAlignment = {
-                        x = .Center, 
-                        y = .Center,
-                    }
-                },
-                image = {
-                    &font_icon_images[.Hp],
-                },
-            }) {
-                clay.TextDynamic(fmt.tprintf("%d", card.max_hp), clay.TextConfig({
-                    fontId = 0,
-                    fontSize = 120,
-                    textColor = {0, 0, 0, 255},
-                }))
-            }
+            // card_hp_icon(card.max_hp)
+            clay_card_weight_icon(card.weight)
         }
     }
 }

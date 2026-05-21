@@ -32,7 +32,7 @@ measure_text :: proc "c" (text: clay.StringSlice, config: ^clay.TextElementConfi
 		switch typed_token in token {
 		case string:
 			line_width += measure_text_ascii_string(typed_token, config, userData).width
-		case Font_Icon_Kind:
+		case Icon_Token:
 			line_width += f32(config.fontSize)
 		}
 	}
@@ -152,17 +152,23 @@ clay_raylib_render :: proc(render_commands: ^clay.ClayArray(clay.RenderCommand),
 			// Raylib uses C strings instead of Odin strings, so we need to clone
 			// Assume this will be freed elsewhere since we default to the temp allocator
 			pos := Vec2{bounds.x, bounds.y}
+			font := raylib_fonts[config.fontId].font
 			for token in split_font_string_into_tokens(text) {
 				switch typed_token in token {
 				case string:
 					cstr_text := strings.clone_to_cstring(typed_token, allocator)
-					font := raylib_fonts[config.fontId].font
 					rl.DrawTextEx(font, cstr_text, pos, f32(config.fontSize), f32(config.letterSpacing), clay_color_to_rl_color(config.textColor))
 					width := measure_text_ascii_string(typed_token, clay.TextConfig({fontId = config.fontId, fontSize = config.fontSize}), render_command.userData).width
 					pos.x += width
-				case Font_Icon_Kind:
-					texture := font_icon_images[typed_token]
+				case Icon_Token:
+					texture := font_icon_images[typed_token.icon_kind]
 					rl.DrawTextureEx(texture, pos, 0, f32(config.fontSize) / f32(texture.height), rl.WHITE)
+					if num, ok := typed_token.number.?; ok {
+						num_string := fmt.ctprintf("%v", num)
+						dims := measure_text_ascii_string(string(num_string), clay.TextConfig({fontId = config.fontId, fontSize = config.fontSize}), render_command.userData)
+						offset := (f32(config.fontSize) - dims.width) / 2
+						rl.DrawTextEx(font, num_string, pos + {offset, 0}, f32(config.fontSize), f32(config.letterSpacing), clay_color_to_rl_color(config.textColor))
+					}
 					pos.x += f32(config.fontSize)
 				}
 			}
@@ -285,7 +291,37 @@ clay_raylib_render :: proc(render_commands: ^clay.ClayArray(clay.RenderCommand),
 				)
 			}
 		case .Custom:
-		// Implement custom element rendering here
+			switch custom_type in (cast(^Custom_Data)(render_command.renderData.custom.customData))^ {
+			case Card_Ability_Kind:
+				background_color := card_ability_background_colors[custom_type]
+				alt_color := background_color * {0.5, 0.5, 0.5, 1}
+				#partial switch custom_type {
+				case .Attack:
+					ATTACK_TRIANGLE_WIDTH :: 50
+					top_left := Vec2{bounds.x, bounds.y}
+					top_right := Vec2{bounds.x + bounds.width, bounds.y}
+					top_left_inset := top_left + {ATTACK_TRIANGLE_WIDTH, 0}
+					middle_left := top_left + {0, bounds.height / 2}
+					bottom_left_inset := top_left + {ATTACK_TRIANGLE_WIDTH, bounds.height}
+					top_right_inset := top_right + {-ATTACK_TRIANGLE_WIDTH, 0}
+					middle_right := top_right + {0, bounds.height / 2}
+					bottom_right_inset := top_right + {-ATTACK_TRIANGLE_WIDTH, bounds.height}
+					rl.DrawTriangle(top_left_inset, middle_left, bottom_left_inset, clay_color_to_rl_color(background_color))
+					rl.DrawTriangle(top_right_inset, bottom_right_inset, middle_right, clay_color_to_rl_color(background_color))
+					rl.DrawRectangleV(top_left + {ATTACK_TRIANGLE_WIDTH, 0}, {bounds.width - 2 * ATTACK_TRIANGLE_WIDTH, bounds.height}, clay_color_to_rl_color(background_color))
+
+
+					perimiter_points := [?]Vec2{top_left_inset + {0, ABILITY_BORDER_WIDTH / 2}, top_right_inset + {0, ABILITY_BORDER_WIDTH / 2}, middle_right, bottom_right_inset + {0, -ABILITY_BORDER_WIDTH / 2}, bottom_left_inset + {0, -ABILITY_BORDER_WIDTH / 2}, middle_left, top_left_inset + {0, ABILITY_BORDER_WIDTH / 2}}
+					rl.DrawSplineLinear(raw_data(perimiter_points[:]), 7, ABILITY_BORDER_WIDTH, clay_color_to_rl_color(alt_color))
+					for point in perimiter_points[:6] {
+						rl.DrawCircleV(point, ABILITY_BORDER_WIDTH / 2, clay_color_to_rl_color(alt_color))
+					}
+				case .Passive:
+					rl.DrawRectangleV({0, bounds.y}, {WIDTH, bounds.height}, clay_color_to_rl_color(background_color))
+					rl.DrawRectangleV({0, bounds.y}, {WIDTH, ABILITY_BORDER_WIDTH}, clay_color_to_rl_color(alt_color))
+					rl.DrawRectangleV({0, bounds.y + bounds.height - ABILITY_BORDER_WIDTH}, {WIDTH, ABILITY_BORDER_WIDTH}, clay_color_to_rl_color(alt_color))
+				}
+			}
 		}
 	}
 }
