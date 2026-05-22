@@ -20,7 +20,7 @@ Size :: enum {
     Smol,
 }
 
-size: Size = .Beeg
+size: Size = .Smol
 
 Font_ID :: enum u16 {
     Default,
@@ -53,6 +53,7 @@ Font_Icon_Kind :: enum {
     Energy,
     Damage,
     Block,
+    Counter,
     Precision,
     Slot_Head,
     Slot_Torso,
@@ -71,7 +72,7 @@ Font_Icon_Kind :: enum {
 
 Icon_Token :: struct {
     icon_kind: Font_Icon_Kind,
-    number: Maybe(int),
+    text: Maybe(string),
 }
 
 Text_Token :: union {
@@ -96,7 +97,6 @@ card_ability_background_colors := #partial [Card_Ability_Kind]clay.Color {
 Card_Ability_Targeting :: struct {
     kind: Targeting_Kind,
     range: int,
-    precision: int,
 }
 
 Card_Ability_Timing :: enum {
@@ -109,9 +109,11 @@ Card_Ability_Timing :: enum {
 Card_Ability :: struct {
     name: string,
     text: string,
+    reminder: string,
     kind: Card_Ability_Kind,
     timing: Card_Ability_Timing,
     targeting: []Card_Ability_Targeting,
+    
 }
 
 Card :: struct {
@@ -121,51 +123,6 @@ Card :: struct {
     abilities: []Card_Ability,
     flavour: string,
 }
-
-big_gun_card := Card {
-    name = "Big Gun",
-    slots = {.Hand},
-    weight = 8,
-    max_hp = 6,
-    abilities = {
-        {
-            name = "Fire!",
-            text = "2[Energy] => 1[Damage]",
-            // text = "2 Energy => 1 Damage",
-            kind = .Attack,
-            timing = .Phase_2,
-            targeting = {
-                {
-                    kind = .Straight,
-                    range = 6,
-                },
-            },
-        },
-        // {
-        //     text = "2[Energy] => 2[Block] on a\nnon-[Slot_Hand] part.",
-        //     kind = .Utility,
-        //     timing = .Phase_2,
-        //     targeting = {
-        //         {
-        //             kind = .Self,
-        //         }
-        //     }
-        // },
-        // {
-        //     text = "=> 2 Boots:D",
-        //     kind = .Movement,
-        //     timing = .Phase_2,
-        // },
-        // {
-        //     text = "You cannot be killed.",
-        //     kind = .Passive,
-        // }
-    },
-    // flavour = "Spray and pray.",
-    price = 1,
-    flavour = "\"Quantity has a quality all its own.\"\n    - Joseph Stalin",
-}
-
 
 
 font_icons := #load_directory("assets/font_icons")
@@ -219,12 +176,10 @@ split_font_string_into_tokens :: proc(str: string) -> []Text_Token {
 			}
 
             icon_name = icon_name[:icon_name_length]
-            icon_name_tokens := strings.split(icon_name, "-", context.temp_allocator)
-            icon_number: Maybe(int) = nil
+            icon_name_tokens := strings.split(icon_name, ":", context.temp_allocator)
+            icon_number: Maybe(string) = nil
             if len(icon_name_tokens) > 1 {
-                if num, ok := strconv.parse_int(icon_name_tokens[1]); ok {
-                    icon_number = num
-                }
+                icon_number = icon_name_tokens[1]
             } 
             icon_enum, ok := reflect.enum_from_name(Font_Icon_Kind, icon_name_tokens[0])
             if !ok {
@@ -251,7 +206,7 @@ main :: proc() {
     cards_bytes, _ := os.read_entire_file("cards.csv", context.allocator)
     cards_string := string(cards_bytes)
     
-    records, _ := csv.read_all_from_string(cards_string)
+    // _, _ := csv.read_all_from_string(cards_string)
 
     min_memory_size := clay.MinMemorySize()
     memory := make([^]u8, min_memory_size)
@@ -292,18 +247,27 @@ main :: proc() {
     append(&raylib_fonts, Raylib_Font{u16(Font_ID.Italic), italic_font})
     append(&raylib_fonts, Raylib_Font{u16(Font_ID.Bold), semibold_font})
 
-    toggle: bool
+    card_index: int = len(cards) - 1
 
     for !rl.WindowShouldClose() {
 
+        the_card := cards[card_index]
+
         if rl.IsKeyPressed(.SPACE) {
-            toggle = !toggle
-            fmt.println("pressed")
+            image := rl.LoadImageFromTexture(main_texture.texture)
+            rl.ImageFlipVertical(&image)
+            rl.ExportImage(image, fmt.ctprintf("output/%v.png", strings.to_snake_case(the_card.name)))
+        }
+        if rl.IsKeyPressed(.LEFT) && card_index > 0 {
+            card_index -= 1
+        }
+        if rl.IsKeyPressed(.RIGHT) && card_index < len(cards) - 1 {
+            card_index += 1
         }
 
         clay.BeginLayout()
 
-        card_layout(big_gun_card)
+        card_layout(the_card)
 
         commands := clay.EndLayout()
 

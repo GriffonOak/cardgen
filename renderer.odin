@@ -5,7 +5,6 @@ import "base:runtime"
 import "core:math"
 import "core:strings"
 import "core:unicode/utf8"
-import "core:c"
 import "core:fmt"
 import rl "vendor:raylib"
 
@@ -162,12 +161,19 @@ clay_raylib_render :: proc(render_commands: ^clay.ClayArray(clay.RenderCommand),
 					pos.x += width
 				case Icon_Token:
 					texture := font_icon_images[typed_token.icon_kind]
-					rl.DrawTextureEx(texture, pos, 0, f32(config.fontSize) / f32(texture.height), rl.WHITE)
-					if num, ok := typed_token.number.?; ok {
-						num_string := fmt.ctprintf("%v", num)
-						dims := measure_text_ascii_string(string(num_string), clay.TextConfig({fontId = config.fontId, fontSize = config.fontSize}), render_command.userData)
+					str, str_ok := typed_token.text.?
+					offset: Vec2
+					if str_ok {
+						#partial switch typed_token.icon_kind {
+						case .Targeting_Straight: offset = {0, -f32(config.fontSize) * 0.4}
+						case .Targeting_Ballistic: offset = {0, -f32(config.fontSize) * 0.2}
+						}
+					}
+					rl.DrawTextureEx(texture, pos + offset, 0, f32(config.fontSize) / f32(texture.height), rl.WHITE)
+					if str_ok {
+						dims := measure_text_ascii_string(str, clay.TextConfig({fontId = config.fontId, fontSize = config.fontSize}), render_command.userData)
 						offset := (f32(config.fontSize) - dims.width) / 2
-						rl.DrawTextEx(font, num_string, pos + {offset, 0}, f32(config.fontSize), f32(config.letterSpacing), clay_color_to_rl_color(config.textColor))
+						rl.DrawTextEx(font, fmt.ctprint(str), pos + {offset, 0}, f32(config.fontSize), f32(config.letterSpacing), clay_color_to_rl_color(config.textColor))
 					}
 					pos.x += f32(config.fontSize)
 				}
