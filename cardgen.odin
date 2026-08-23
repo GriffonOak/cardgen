@@ -15,12 +15,13 @@ _ :: strings
 
 Vec2 :: [2]f32
 
-Size :: enum {
-    Beeg,
-    Smol,
+Mode :: enum {
+    Card_Beeg,
+    Card_Smol,
+    Graph,
 }
 
-size: Size = .Smol
+mode: Mode = .Card_Beeg
 
 Font_ID :: enum u16 {
     Default,
@@ -128,29 +129,6 @@ Card :: struct {
 font_icons := #load_directory("assets/font_icons")
 font_icon_images: [Font_Icon_Kind]rl.Texture2D
 
-// measure_text :: proc "c" (
-//     text: clay.StringSlice,
-//     config: ^clay.TextElementConfig,
-//     userData: rawptr,
-// ) -> clay.Dimensions {
-//     // clay.TextElementConfig contains members such as fontId, fontSize, letterSpacing, etc..
-//     // Note: clay.String->chars is not guaranteed to be null terminated
-//     // return {
-//     //     width = f32(text.length * i32(config.fontSize)),
-//     //     height = f32(config.fontSize),
-//     // }
-
-//     context = runtime.default_context()
-
-//     text_string := strings.string_from_ptr(text.chars, int(text.length))
-//     text_cstring := strings.clone_to_cstring(text_string, context.temp_allocator)
-//     text_font_size := f32(config.fontSize)
-//     text_spacing := f32(config.letterSpacing)
-//     font := card_fonts[Font_ID(config.fontId)]
-
-//     return transmute(clay.Dimensions) rl.MeasureTextEx(font, text_cstring, text_font_size, text_spacing)
-// }
-
 split_font_string_into_tokens :: proc(str: string) -> []Text_Token {
     arr := make([dynamic]Text_Token, context.temp_allocator)
 
@@ -201,23 +179,26 @@ split_font_string_into_tokens :: proc(str: string) -> []Text_Token {
 WIDTH :: 1000
 HEIGHT :: 1400
 
+GRAPH_WINDOW_SIZE :: Vec2{1000, 1000}
+
 main :: proc() {
 
     cards_bytes, _ := os.read_entire_file("cards.csv", context.allocator)
     cards_string := string(cards_bytes)
     
-    // _, _ := csv.read_all_from_string(cards_string)
-
     min_memory_size := clay.MinMemorySize()
     memory := make([^]u8, min_memory_size)
     arena: clay.Arena = clay.CreateArenaWithCapacityAndMemory(uint(min_memory_size), memory)
     clay.Initialize(arena, {WIDTH, HEIGHT}, {})
     clay.SetMeasureTextFunction(measure_text, nil)
 
-    if size == .Beeg {
+    switch mode {
+    case .Card_Beeg:
         rl.InitWindow(WIDTH, HEIGHT, "Card")
-    } else {
+    case .Card_Smol:
         rl.InitWindow(WIDTH / 2, HEIGHT / 2, "Card")
+    case .Graph:
+        rl.InitWindow(i32(GRAPH_WINDOW_SIZE.x), i32(GRAPH_WINDOW_SIZE.y), "Card")
     }
 
     main_texture := rl.LoadRenderTexture(1000, 1400)
@@ -232,12 +213,6 @@ main :: proc() {
         } else {
             font_icon_images[enum_value] = texture
         }
-        // switch dir_file.name {
-        // case "weight.png": font_icon_images[.Weight] = texture
-        // case "HP.png": font_icon_images[.HP] = texture
-        // case "energy.png": font_icon_images[.Energy] = texture
-        // case "damage.png": font_icon_images[.Damage] = texture
-        // }
     }
 
     regular_font := rl.LoadFontEx("assets/NotoSans-Regular.ttf", 200, nil, 0)
@@ -253,16 +228,50 @@ main :: proc() {
 
         the_card := cards[card_index]
 
-        if rl.IsKeyPressed(.SPACE) {
-            image := rl.LoadImageFromTexture(main_texture.texture)
-            rl.ImageFlipVertical(&image)
-            rl.ExportImage(image, fmt.ctprintf("output/%v.png", strings.to_snake_case(the_card.name)))
+        set_mode_smol :: proc() {
+            mode = .Card_Smol
+            rl.SetWindowSize(WIDTH / 2, HEIGHT / 2)
         }
-        if rl.IsKeyPressed(.LEFT) && card_index > 0 {
-            card_index -= 1
+
+        set_mode_beeg :: proc() {
+            mode = .Card_Beeg
+            rl.SetWindowSize(WIDTH, HEIGHT)
         }
-        if rl.IsKeyPressed(.RIGHT) && card_index < len(cards) - 1 {
-            card_index += 1
+
+        set_mode_graph :: proc() {
+            mode = .Graph
+            rl.SetWindowSize(i32(GRAPH_WINDOW_SIZE.x), i32(GRAPH_WINDOW_SIZE.y))
+        }
+
+        for key := rl.GetKeyPressed(); key != .KEY_NULL; key = rl.GetKeyPressed() {
+            #partial switch key {
+            case .SPACE:
+                if mode == .Card_Beeg || mode == .Card_Smol {
+                    image := rl.LoadImageFromTexture(main_texture.texture)
+                    rl.ImageFlipVertical(&image)
+                    rl.ExportImage(image, fmt.ctprintf("output/%v.png", strings.to_snake_case(the_card.name)))
+                }
+            case .LEFT:
+                if (mode == .Card_Beeg || mode == .Card_Smol) && card_index > 0 {
+                    card_index -= 1
+                }
+            case .RIGHT:
+                if (mode == .Card_Beeg || mode == .Card_Smol) && card_index < len(cards) - 1 {
+                    card_index += 1
+                }
+            case .MINUS:
+                if mode != .Card_Smol {
+                    set_mode_smol()
+                }
+            case .EQUAL:
+                if mode != .Card_Beeg {
+                    set_mode_beeg()
+                }
+            case .G:
+                if mode != .Graph {
+                    set_mode_graph()
+                }
+            }
         }
 
         clay.BeginLayout()
@@ -274,8 +283,6 @@ main :: proc() {
         rl.BeginDrawing(); {
             defer rl.EndDrawing()
 
-            rl.ClearBackground(rl.MAGENTA)
-
             rl.BeginTextureMode(main_texture); {
                 defer rl.EndTextureMode()
 
@@ -284,10 +291,39 @@ main :: proc() {
                 clay_raylib_render(&commands)
             }
 
-            dest_rect: rl.Rectangle = {0, 0, 500, 700} if size == .Smol else {0, 0, 1000, 1400}
-            rl.SetTextureFilter(main_texture.texture, .BILINEAR)
-            rl.DrawTexturePro(main_texture.texture, {0, 0, 1000, -1400}, dest_rect, {}, 0, rl.WHITE)
+            rl.ClearBackground(rl.MAGENTA)
+
+            switch mode {
+            case .Card_Beeg, .Card_Smol:
+                dest_rect: rl.Rectangle = {0, 0, WIDTH / 2, HEIGHT / 2} if mode == .Card_Smol else {0, 0, WIDTH, HEIGHT}
+                rl.SetTextureFilter(main_texture.texture, .BILINEAR)
+                rl.DrawTexturePro(main_texture.texture, {0, 0, 1000, -1400}, dest_rect, {}, 0, rl.WHITE)
+            case .Graph:
+                graph_origin := Vec2{100, 900}
+                rl.ClearBackground(rl.WHITE)
+                rl.DrawCircleV(graph_origin, 4, rl.BLACK)
+                rl.DrawLineV({graph_origin.x, 0}, graph_origin, rl.BLACK)
+                rl.DrawLineV(graph_origin, {1000, graph_origin.y}, rl.BLACK)
+                graph_increment: f32 = 50
+
+                transform_pos :: proc(stats: Vec2, graph_origin: Vec2, graph_increment: f32) -> Vec2{
+                    return stats * graph_increment * {1, -1} + graph_origin
+                }
+                for card in cards {
+                    if card.max_hp == 0 do continue
+                    pos := transform_pos(Vec2{f32(card.weight), f32(card.max_hp)} + {1, 1}, graph_origin, graph_increment)
+                    rl.DrawCircleV(pos, 5, rl.RED)
+                }
+
+                for i in 0..=15 {
+                    pos1 := transform_pos(Vec2{f32(i), 0}, graph_origin, graph_increment)
+                    pos2 := transform_pos(Vec2{0, f32(i)}, graph_origin, graph_increment)
+                    rl.DrawCircleV(pos1, 5, rl.BLACK)
+                    rl.DrawCircleV(pos2, 5, rl.BLACK)
+                }
+            }
         }
+        
 
         free_all(context.temp_allocator)
     }
