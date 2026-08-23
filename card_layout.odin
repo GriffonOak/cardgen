@@ -12,7 +12,7 @@ CARD_BAR_BOUNDARY_HEIGHT :: 10
 CARD_BAR_BOUNDARY_COLOR :: clay.Color{100, 100, 100, 255}
 CARD_BAR_ICON_SIZE :: 140
 CARD_BAR_SECONDARY_ICON_SIZE :: 120
-CARD_BAR_TITLE_FONT_SIZE :: 100
+CARD_BAR_TITLE_FONT_SIZE :: 80
 CARD_BAR_ICON_FONT_SIZE :: 100
 CARD_BAR_WEIGHT_BACKGROUND_COLOR :: clay.Color{100, 100, 100, 255}
 
@@ -27,6 +27,20 @@ ABILITY_REMINDER_FONT_SIZE :: 60
 
 Custom_Data :: union {
     Card_Ability_Kind,
+}
+
+clay_corner_aligner :: #force_inline proc(alignment: clay.LayoutAlignmentY) -> clay.ElementDeclaration {
+    return {
+        layout = {
+            sizing = {
+                clay.SizingFit(),
+                clay.SizingGrow(),
+            },
+            childAlignment = {
+                y = alignment,
+            },
+        },
+    }
 }
 
 clay_card_ability :: proc(ability: Card_Ability) {
@@ -166,7 +180,7 @@ clay_card_weight_icon :: proc(weight: int) {
         layout = {
             sizing = {
                 clay.SizingFit(),
-                clay.SizingGrow(),
+                clay.SizingFit(),
             },
             padding = clay.PaddingAll(CARD_BAR_PADDING),
             childAlignment = {
@@ -268,30 +282,40 @@ card_layout :: proc(card: Card) {
             },
             backgroundColor = CARD_BAR_BACKGROUND_COLOR,
         }) {
-            for slot_kind, i  in card.slots {  // Slot Icons
-                font_icon_name := fmt.tprintf("Slot_%v", slot_kind)
-                font_icon, _ := reflect.enum_from_name(Font_Icon_Kind, font_icon_name)
-                size: f32 = CARD_BAR_ICON_SIZE if i == 0 else CARD_BAR_SECONDARY_ICON_SIZE
-                if i != 0 {
-                    if clay.UI()({
-                        layout = {
-                            sizing = {
-                                width = clay.SizingFixed(CARD_BAR_PADDING),
-                            },
-                        },
-                    }) {}
-                }
+            if clay.UI()(clay_corner_aligner(.Top)) {
                 if clay.UI()({
                     layout = {
-                        sizing = {
-                            clay.SizingFixed(size),
-                            clay.SizingFixed(size),
+                        childAlignment = {
+                            y = .Center,
                         },
                     },
-                    image = {
-                        &font_icon_images[font_icon],
-                    },
-                }) {}
+                }) {
+                    for slot_kind, i  in card.slots {  // Slot Icons
+                        font_icon_name := fmt.tprintf("Slot_%v", slot_kind)
+                        font_icon, _ := reflect.enum_from_name(Font_Icon_Kind, font_icon_name)
+                        size: f32 = CARD_BAR_ICON_SIZE if i == 0 else CARD_BAR_SECONDARY_ICON_SIZE
+                        if i != 0 {
+                            if clay.UI()({
+                                layout = {
+                                    sizing = {
+                                        width = clay.SizingFixed(CARD_BAR_PADDING),
+                                    },
+                                },
+                            }) {}
+                        }
+                        if clay.UI()({
+                            layout = {
+                                sizing = {
+                                    clay.SizingFixed(size),
+                                    clay.SizingFixed(size),
+                                },
+                            },
+                            image = {
+                                &font_icon_images[font_icon],
+                            },
+                        }) {}
+                    }
+                }
             }
             if clay.UI()({  // Spacer
                 layout = {
@@ -299,7 +323,7 @@ card_layout :: proc(card: Card) {
                     childAlignment = {
                         x = .Center, 
                         y = .Center,
-                    }
+                    },
                 },
             }) {
 
@@ -321,7 +345,9 @@ card_layout :: proc(card: Card) {
             }
             // card_weight_icon(card.weight)
             if card.max_hp > 0 {
-                clay_card_hp_icon(card.max_hp)
+                if clay.UI()(clay_corner_aligner(.Top)) {
+                    clay_card_hp_icon(card.max_hp)
+                }
             }
         }
         clay_card_bar_boundary()
@@ -358,7 +384,9 @@ card_layout :: proc(card: Card) {
             backgroundColor = CARD_BAR_BACKGROUND_COLOR,
         }) {
             if card.price != 0 {
-                clay_card_price_icon(card.price)
+                if clay.UI()(clay_corner_aligner(.Bottom)) {
+                    clay_card_price_icon(card.price)
+                }
             }
             if clay.UI()({  // Bottom bar spacer
                 layout = {
@@ -379,7 +407,9 @@ card_layout :: proc(card: Card) {
                 }))
             }
             // card_hp_icon(card.max_hp)
-            clay_card_weight_icon(card.weight)
+            if clay.UI()(clay_corner_aligner(.Bottom)) {
+                clay_card_weight_icon(card.weight)
+            }
         }
     }
 }

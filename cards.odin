@@ -30,7 +30,7 @@ cards := []Card {
         abilities = {
             {
                 kind = .Passive,
-                text = "Your [Targeting_Straight] attacks\nignore obstacles."
+                text = "Your [Targeting_Straight] attacks\nignore obstacles.",
             },
         },
         flavour = "\"What do you mean it shot a\nmissile through a rock?\"",
@@ -71,7 +71,7 @@ cards := []Card {
                 text = "While this part has any [Block], it\nmust be selected in [Precision] attacks.",
             },
         },
-        flavour = "It's not cowardice if you're alive."
+        flavour = "It's not cowardice if you're alive.",
     },
     Card { name = "Active Suspension",
         slots = {.Mod},
@@ -86,7 +86,7 @@ cards := []Card {
                         kind = .Self,
                     },
                 },
-                text = "2[Energy] => 2[Block] on a [Slot_Hand] part."
+                text = "2[Energy] => 2[Block] on a [Slot_Hand] part.",
             },
             {
                 kind = .Passive,
@@ -94,7 +94,7 @@ cards := []Card {
                 reminder = "(Damage cannot be reduced below 1.)",
             },
         },
-        flavour = "Bend with the wind."
+        flavour = "Bend with the wind.",
     },
     Card { name = "Martial Arts Protocol",
         slots = {.Mod},
@@ -108,7 +108,7 @@ cards := []Card {
                 reminder = "(Melee attacks use [Targeting_Adjacent]/[Targeting_Surrounding])",
             },
         },
-        flavour = "\"I know kung fu.\"\n    - Neo"
+        flavour = "\"I know kung fu.\"\n    - Neo",
     },
     Card { name = "Ablative Plating",
         slots = {.Mod},
@@ -124,10 +124,10 @@ cards := []Card {
                         kind = .Self,
                     },
                 },
-                text = "2[Energy] => 1[Damage]3[Block]on a\npart with 0[Block]."
+                text = "2[Energy] => 1[Damage]3[Block]on a\npart with 0[Block].",
             },
         },
-        flavour = "\"That'll buff out.\""
+        flavour = "\"That'll buff out.\"",
     },
     Card { name = "Targeting Computer",
         slots = {.Mod},
@@ -135,22 +135,12 @@ cards := []Card {
         price = 1,
         abilities = {
             {
-                kind = .Utility,
-                timing = .Phase_2,
-                text = "3[Energy] => 1[Counter] (Max 1)"
-            },
-            {
                 kind = .Passive,
-                text = "When making a ranged attack, you may remove 1[Counter] from this\npart to give the attack +1[Targeting_Straight]/[Targeting_Ballistic]\nand [Precision:3]/-2[Precision].",
-                reminder = "(Ranged attacks use [Targeting_Straight]/[Targeting_Ballistic])"
-            },
-            {
-                kind = .Passive,
-                timing = .Phase_3,
-                text = "Remove all [Counter] from this part.",
+                text = "When making a ranged attack,\nyou may spend 3[Energy] to give the\nattack +1[Targeting_Straight]/[Targeting_Ballistic] and -2[Precision]. If\nthe attack has no [Precision], give it [Precision:3].",
+                reminder = "(Ranged attacks use [Targeting_Straight]/[Targeting_Ballistic])",
             },
         },
-        flavour = "\"I have a visual.\""
+        flavour = "\"I have a visual.\"",
     },
     Card { name = "Reflex Drive",
         slots = {.Mod},
@@ -162,7 +152,7 @@ cards := []Card {
                 text = "Each round, the first attack\nagainst you with [Precision] gains +2[Precision].",
             },
         },
-        flavour = "Nice try."
+        flavour = "Nice try.",
     },
     Card { name = "Aggressive Armour",
         slots = {.Torso},
@@ -205,12 +195,7 @@ cards := []Card {
             {
                 kind = .Passive,
                 timing = .Phase_1,
-                text = "Gain 8[Energy].",
-            },
-            {
-                kind = .Utility,
-                timing = .Phase_1,
-                text = "1[Damage] on this part => 1[Energy].",
+                text = "Gain 8[Energy].\nYou may take up to 4[Damage] on this part, then gain[Energy] equal to damage dealt.",
             },
         },
         flavour = "\"Just try to keep an eye on it\".",
@@ -317,10 +302,14 @@ cards := []Card {
                         kind = .Adjacent,
                     },
                 },
-                text = "5[Energy] => 3[Damage].\nDeals +1[Damage] if the\nhit part has [Block].",
+                text = "5[Energy] => 3[Damage].",
+            },
+            {
+                kind = .Passive,
+                text = "This part deals +1[Damage]\nto parts with [Block].",
             },
         },
-        flavour = "\"Stick it in the gaps.\"",
+        flavour = "No defence is without weakness.",
     },
     Card { name = "Railgun",
         slots = {.Hand},
@@ -357,10 +346,14 @@ cards := []Card {
                         range = 99,
                     },
                 },
-                text = "4[Energy] => 2[Damage].\nHas [Precision:1] if the target is at least\n4 spaces away.",
+                text = "4[Energy] => 2[Damage]. If the target is 4+ spaces away, this attack has [Precision:1]",
             },
+            // {
+            //     kind = .Passive,
+            //     text = "[Damage] dealt by this part has\n[Precision:1] if the target is 4 or\nmore spaces away.",
+            // },
         },
-        flavour = "Don't move."
+        flavour = "Don't move.",
     },
     Card { name = "Crossbow",
         slots = {.Hand},
@@ -385,7 +378,7 @@ cards := []Card {
                 text = "1[Energy],1[Counter] => 2[Damage]",
             },
         },
-        flavour = "It's got a hair trigger."
+        flavour = "Careful with the trigger.",
     },
     Card { name = "Assassin's Blade",
         slots = {.Hand},
@@ -404,7 +397,7 @@ cards := []Card {
                 text = "3[Energy] => 1[Damage][Precision:2]",
             },
         },
-        flavour = "They never notice until it's too late."
+        flavour = "They never notice until it's too late.",
     },
     Card { name = "Buckler",
         slots = {.Hand},
@@ -421,6 +414,483 @@ cards := []Card {
                 kind = .Passive,
                 text = "Whenever you lose [Hp] to a\nmelee attack, 1[Block] on this part.",
                 reminder = "(Melee attacks use [Targeting_Adjacent]/[Targeting_Surrounding])",
+            },
+        },
+        flavour = "I hardly know 'er!",
+    },
+    Card { name = "Repair Tool",
+        slots = {.Hand},
+        weight = 4,
+        max_hp = 2,
+        price = 1,
+        abilities = {
+            {
+                kind = .Utility,
+                timing = .Phase_2,
+                targeting = {
+                    {
+                        kind = .Self,
+                    },
+                    {
+                        kind = .Adjacent,
+                    },
+                },
+                text = "4[Energy] => 2[Repair][Precision:1].",
+            },
+            {
+                kind = .Passive,
+                text = "This part cannot use [Repair]\nit generates on itself.",
+            },
+        },
+        flavour = "Show me where it hurts.",
+    },
+    Card { name = "Plink Cannon",
+        slots = {.Mod},
+        weight = 1,
+        price = 1,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_1,
+                targeting = {
+                    {
+                        kind = .Ballistic,
+                        range = 2,
+                    },
+                },
+                text = "1[Energy] => 1[Damage].",
+            },
+        },
+        flavour = "Plink!",
+    },
+    Card { name = "Chrome Dome",
+        slots = {.Head},
+        weight = 5,
+        max_hp = 2,
+        price = 1,
+        abilities = {
+            {
+                kind = .Passive,
+                timing = .Phase_1,
+                text = "2[Block] on this part.",
+            },
+        },
+        flavour = "\"You will ride eternal,\nshiny and chrome.\"\n   - Immortan Joe",
+    },
+    Card { name = "Tesla Cranium",
+        slots = {.Head},
+        weight = 5,
+        max_hp = 2,
+        price = 1,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                targeting = {
+                    {
+                        kind = .Surrounding,
+                    },
+                },
+                text = "3[Energy] => 2[Damage]",
+            },
+        },
+        flavour = "You may feel a slight tingling.",
+    },
+    Card { name = "Heat Rays",
+        slots = {.Head},
+        weight = 4,
+        max_hp = 3,
+        price = 1,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                targeting = {
+                    {
+                        kind = .Straight,
+                        range = 6,
+                    },
+                },
+                text = "5[Energy] => 1[Damage][Precision:1]",
+            },
+        },
+        flavour = "It's rude to stare.",
+    },
+    Card { name = "Hammer Head",
+        slots = {.Head},
+        weight = 9,
+        max_hp = 5,
+        price = 1,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                targeting = {
+                    {
+                        kind = .Adjacent,
+                    },
+                },
+                text = "4[Energy] => 3[Damage]",
+            },
+        },
+        flavour = "\"It doesn't really have\nanything to do with sharks.\"",
+    },
+    Card { name = "Tripedal Drive",
+        slots = {.Legs, .Hand},
+        weight = 10,
+        max_hp = 6,
+        price = 1,
+        abilities = {
+            {
+                kind = .Movement,
+                timing = .Phase_2,
+                text = "3[Energy] => (10 - WC)[Movement]",
+            },
+        },
+        flavour = "Be grateful for\nwhat you still have.",
+    },
+    Card { name = "Nuclear Reactor",
+        slots = {.Torso},
+        weight = 12,
+        max_hp = 20,
+        price = 1,
+        abilities = {
+            {
+                kind = .Passive,
+                timing = .Phase_1,
+                text = "Gain 14[Energy].\nThis part loses [Hp:2].",
+            },
+        },
+        flavour = "\"...yes, but the idea is to win\nbefore that becomes a problem.\"",
+    },
+    Card { name = "Jumping Legs",
+        slots = {.Legs},
+        weight = 4,
+        max_hp = 3,
+        price = 1,
+        abilities = {
+            {
+                kind = .Movement,
+                timing = .Phase_2,
+                text = "3[Energy] => (4 - WC)[Movement]",
+            },
+            {
+                kind = .Passive,
+                text = "You may move\nthrough obstacles.",
+            },
+        },
+        flavour = "\"It's a lifestyle.\"",
+    },
+    Card { name = "Spartan Legs",
+        slots = {.Legs},
+        weight = 8,
+        max_hp = 4,
+        price = 1,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                targeting = {
+                    {
+                        kind = .Adjacent,
+                    },
+                },
+                text = "3[Energy] => 2[Damage]. Push the target 1 space.",
+            },
+            {
+                kind = .Movement,
+                timing = .Phase_2,
+                text = "3[Energy] => (6 - WC)[Movement]",
+            },
+        },
+        flavour = "\"Wasn't there a quote about this?\"",
+    },
+    Card { name = "Swift-foot Legs",
+        slots = {.Legs},
+        weight = 5,
+        max_hp = 3,
+        price = 1,
+        abilities = {
+            {
+                kind = .Movement,
+                timing = .Phase_2,
+                text = "3[Energy] => (10 - 2*WC)[Movement]",
+            },
+        },
+        flavour = "Multiplication goes\nbefore subtraction.",
+    },
+    Card { name = "Legs",
+        slots = {.Legs},
+        weight = 6,
+        max_hp = 6,
+        price = 1,
+        abilities = {
+            {
+                kind = .Movement,
+                timing = .Phase_2,
+                text = "WC[Energy] => (6 - WC)[Movement]",
+            },
+        },
+        flavour = "Begin with a single step.",
+    },
+    Card { name = "Sentry Legs",
+        slots = {.Legs},
+        weight = 9,
+        max_hp = 7,
+        price = 1,
+        abilities = {
+            {
+                kind = .Movement,
+                timing = .Phase_2,
+                text = "WC[Energy] => (8 - WC)[Movement]",
+            },
+            {
+                kind = .Passive,
+                text = "When moving, turns along your\npath cost an additional 1[Movement].",
+            },
+        },
+        flavour = "\"You'll get the hang of it.\"",
+    },
+    Card { name = "Billboard",
+        slots = {.Hand},
+        weight = 5,
+        max_hp = 4,
+        price = 1,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                targeting = {
+                    {
+                        kind = .Adjacent,
+                    },
+                },
+                text = "3[Energy] => 1[Damage]",
+            },
+            {
+                kind = .Passive,
+                text = "When you purchase this\npart, your team gains $10.",
+            },
+        },
+        flavour = "Feel the power of\nthe invisible hand.",
+    },
+    Card { name = "Cytokine Storm",
+        slots = {.Mod},
+        weight = 0,
+        price = 1,
+        abilities = {
+            {
+                kind = .Passive,
+                text = "Clearing status tokens\ncosts 1[Energy] less.",
+            },
+            {
+                kind = .Utility,
+                timing = .Phase_2,
+                text = "2[Energy] => Take 1[Damage],1[Damage], then clear all status tokens from this robot.",
+            },
+        },
+        flavour = "\"It's spelled how it sounds.\"",
+    },
+    Card { name = "Small Modular Reactor",
+        slots = {.Mod},
+        weight = 4,
+        price = 1,
+        max_hp = 2,
+        abilities = {
+            {
+                kind = .Passive,
+                timing = .Phase_1,
+                text = "Gain 2[Energy].",
+            },
+        },
+        flavour = "...but mighty.",
+    },
+    Card { name = "Optimized Routing",
+        slots = {.Mod},
+        weight = 1,
+        price = 1,
+        abilities = {
+            {
+                kind = .Passive,
+                text = "Abilities that cost 5[Energy]\nor more cost 1[Energy] less.",
+            },
+        },
+    },
+    Card { name = "Suspension System",
+        slots = {.Mod},
+        weight = -2,
+        price = 1,
+        max_hp = 2,
+        abilities = {
+            {
+                kind = .Utility,
+                timing = .Phase_2,
+                text = "3[Energy] => [Counter] on this part.",
+            },
+            {
+                kind = .Passive,
+                text = "While this part has [Counter],\nyou have -10[Weight]",
+            },
+            {
+                kind = .Passive,
+                timing = .Phase_1,
+                text = "Remove all [Counter] from this part.",
+            },
+        },
+    },
+    Card { name = "Self-forming Structures",
+        slots = {.Mod},
+        weight = 4,
+        price = 1,
+        max_hp = 2,
+        abilities = {
+            {
+                kind = .Passive,
+                timing = .Phase_1,
+                targeting = {{kind = .Self}},
+                text = "1[Repair]",
+            },
+        },
+    },
+    Card { name = "Grapple Arm",
+        slots = {.Hand},
+        weight = 6,
+        price = 1,
+        max_hp = 5,
+        abilities = {
+            {
+                kind = .Utility,
+                timing = .Phase_2,
+                targeting = {{kind = .Straight, range = 4}},
+                text = "4[Energy] => Target any obstacle. Move in a straight line towards it until you are adjacent. If it is a unit, 1[Damage].",
+            },
+        },
+    },
+    Card { name = "Arm Blades",
+        slots = {.Hand},
+        weight = 6,
+        price = 1,
+        max_hp = 5,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                targeting = {{kind = .Adjacent}},
+                text = "4[Energy] => 3[Damage].",
+            },
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                targeting = {{kind = .Adjacent}},
+                text = "3[Energy] => Move 1-2 spaces in a straight line, then target an enemy unit in the same direction as you moved. 1[Damage][Precision:1].",
+                reminder = "(You must be able to do both.)"
+            },
+        },
+    },
+    Card { name = "Fire Spitter",
+        slots = {.Hand},
+        weight = 10,
+        price = 1,
+        max_hp = 5,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                targeting = {{kind = .Straight, range = 3}},
+                text = "5[Energy] => 1[Fire],1[Fire]",
+            },
+        },
+    },
+    Card { name = "Bludgeon Arm",
+        slots = {.Hand},
+        weight = 11,
+        price = 1,
+        max_hp = 6,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                targeting = {{kind = .Adjacent}},
+                text = "7[Energy] => WC[Damage]. This attack deals +2[Damage] if your WC is 4 or more."
+            },
+        },
+        flavour = "\"That ought to do the trick.\""
+    },
+    Card { name = "Reactive Exoskeleton",
+        slots = {.Legs},
+        weight = 8,
+        price = 1,
+        max_hp = 2,
+        abilities = {
+            {
+                kind = .Movement,
+                timing = .Phase_2,
+                text = "3[Energy] => (5 - WC)[Movement]."
+            },
+            {
+                kind = .Passive,
+                timing = .Phase_2,
+                text = "Once per round, after any activation finishes, you may spend 2[Energy] for 1[Movement]."
+            }
+        },
+    },
+    Card { name = "Inertial Drive",
+        slots = {.Torso},
+        weight = 4,
+        price = 1,
+        max_hp = 8,
+        abilities = {
+            {
+                kind = .Passive,
+                timing = .Phase_1,
+                text = "Remove all [Counter] from this\npart and gain 8[Energy].\nYou may place [Counter] on\nthis part to gain 4[Energy]."
+            },
+            {
+                kind = .Passive,
+                text = "While this part has [Counter], you\nget -1[Movement] from all sources."
+            }
+        },
+    },
+    Card { name = "Conserving Dynamo",
+        slots = {.Torso},
+        weight = 4,
+        price = 1,
+        max_hp = 8,
+        abilities = {
+            {
+                kind = .Passive,
+                timing = .Phase_1,
+                text = "Gain 10[Energy]."
+            },
+            {
+                kind = .Passive,
+                text = "You may conserve up to\n7[Energy] between rounds."
+            }
+        },
+    },
+    Card { name = "Movement Amplifier",
+        slots = {.Head},
+        weight = 6,
+        price = 1,
+        max_hp = 2,
+        abilities = {
+            {
+                kind = .Passive,
+                text = "You get +1[Movement]\nfrom all sources."
+            },
+        },
+    },
+    Card { name = "Plated Visor",
+        slots = {.Head},
+        weight = 5,
+        price = 1,
+        max_hp = 4,
+        abilities = {
+            {
+                kind = .Utility,
+                timing = .Phase_2,
+                targeting = {{kind = .Self}},
+                text = "2[Energy] => 2[Block] on a\nnon-[Slot_Hand] part.",
             },
         },
     },

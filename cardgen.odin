@@ -5,23 +5,24 @@ import rl "vendor:raylib"
 import "base:runtime"
 import "core:strings"
 import "core:reflect"
-import "core:os"
 import "core:fmt"
-import "core:encoding/csv"
-import "core:strconv"
+import "core:slice"
 
 _ :: runtime
 _ :: strings
+_ :: slice
+
 
 Vec2 :: [2]f32
 
 Mode :: enum {
     Card_Beeg,
     Card_Smol,
+    Pages,
     Graph,
 }
 
-mode: Mode = .Card_Beeg
+mode: Mode = .Pages
 
 Font_ID :: enum u16 {
     Default,
@@ -55,7 +56,10 @@ Font_Icon_Kind :: enum {
     Damage,
     Block,
     Counter,
+    Repair,
+    Movement,
     Precision,
+    Fire,
     Slot_Head,
     Slot_Torso,
     Slot_Hand,
@@ -123,6 +127,7 @@ Card :: struct {
     weight, max_hp, price: int,
     abilities: []Card_Ability,
     flavour: string,
+    texture: rl.RenderTexture2D,
 }
 
 
@@ -181,16 +186,20 @@ HEIGHT :: 1400
 
 GRAPH_WINDOW_SIZE :: Vec2{1000, 1000}
 
+CARDS_PER_PAGE :: 6
+
 main :: proc() {
 
-    cards_bytes, _ := os.read_entire_file("cards.csv", context.allocator)
-    cards_string := string(cards_bytes)
+    // cards_bytes, _ := os.read_entire_file("cards.csv", context.allocator)
+    // cards_string := string(cards_bytes)
     
     min_memory_size := clay.MinMemorySize()
     memory := make([^]u8, min_memory_size)
     arena: clay.Arena = clay.CreateArenaWithCapacityAndMemory(uint(min_memory_size), memory)
     clay.Initialize(arena, {WIDTH, HEIGHT}, {})
     clay.SetMeasureTextFunction(measure_text, nil)
+
+    // rl.InitWindow(WIDTH, HEIGHT, "Card")
 
     switch mode {
     case .Card_Beeg:
@@ -199,9 +208,9 @@ main :: proc() {
         rl.InitWindow(WIDTH / 2, HEIGHT / 2, "Card")
     case .Graph:
         rl.InitWindow(i32(GRAPH_WINDOW_SIZE.x), i32(GRAPH_WINDOW_SIZE.y), "Card")
+    case .Pages:
+        rl.InitWindow(WIDTH * CARDS_PER_PAGE / 6, 2 * HEIGHT / 3, "Card")
     }
-
-    main_texture := rl.LoadRenderTexture(1000, 1400)
 
     for dir_file in font_icons {
         image := rl.LoadImageFromMemory(".png", raw_data(dir_file.data), i32(len(dir_file.data)))
@@ -222,82 +231,114 @@ main :: proc() {
     append(&raylib_fonts, Raylib_Font{u16(Font_ID.Italic), italic_font})
     append(&raylib_fonts, Raylib_Font{u16(Font_ID.Bold), semibold_font})
 
-    card_index: int = len(cards) - 1
+    card_index := len(cards) - 1
+    page_index := (len(cards) - 1) / CARDS_PER_PAGE
+
+    compare_slot :: proc(a, b: Card) -> bool {
+        if a.slots[0] == b.slots[0] {
+            return a.name < b.name
+        }
+        return a.slots[0] < b.slots[0]
+    }
+    slice.sort_by(cards, compare_slot)
+
+    for &card in cards {
+        card.texture = rl.LoadRenderTexture(WIDTH, HEIGHT)
+
+        clay.BeginLayout()
+        card_layout(card)
+        commands := clay.EndLayout()
+
+        rl.BeginTextureMode(card.texture)
+        rl.ClearBackground(rl.WHITE)
+        clay_raylib_render(&commands)
+        rl.EndTextureMode()
+        rl.SetTextureFilter(card.texture.texture, .BILINEAR)
+
+    }
 
     for !rl.WindowShouldClose() {
 
         the_card := cards[card_index]
 
-        set_mode_smol :: proc() {
-            mode = .Card_Smol
-            rl.SetWindowSize(WIDTH / 2, HEIGHT / 2)
-        }
-
-        set_mode_beeg :: proc() {
-            mode = .Card_Beeg
-            rl.SetWindowSize(WIDTH, HEIGHT)
-        }
-
-        set_mode_graph :: proc() {
-            mode = .Graph
-            rl.SetWindowSize(i32(GRAPH_WINDOW_SIZE.x), i32(GRAPH_WINDOW_SIZE.y))
-        }
-
+        prev_mode := mode
         for key := rl.GetKeyPressed(); key != .KEY_NULL; key = rl.GetKeyPressed() {
             #partial switch key {
             case .SPACE:
-                if mode == .Card_Beeg || mode == .Card_Smol {
-                    image := rl.LoadImageFromTexture(main_texture.texture)
+                for card in cards {
+                    image := rl.LoadImageFromTexture(card.texture.texture)
                     rl.ImageFlipVertical(&image)
-                    rl.ExportImage(image, fmt.ctprintf("output/%v.png", strings.to_snake_case(the_card.name)))
+                    rl.ExportImage(image, fmt.ctprintf("output/%v.png", strings.to_snake_case(card.name)))
                 }
             case .LEFT:
                 if (mode == .Card_Beeg || mode == .Card_Smol) && card_index > 0 {
                     card_index -= 1
+                } else if mode == .Pages && page_index > 0 {
+                    page_index -= 1
                 }
             case .RIGHT:
                 if (mode == .Card_Beeg || mode == .Card_Smol) && card_index < len(cards) - 1 {
                     card_index += 1
+                } else if mode == .Pages && page_index < (len(cards) - 1) / 6 {
+                    page_index += 1
                 }
             case .MINUS:
-                if mode != .Card_Smol {
-                    set_mode_smol()
-                }
+                mode = .Card_Smol 
             case .EQUAL:
-                if mode != .Card_Beeg {
-                    set_mode_beeg()
-                }
+                mode = .Card_Beeg
             case .G:
-                if mode != .Graph {
-                    set_mode_graph()
-                }
+                mode = .Graph
+            case .P:
+                mode = .Pages
             }
         }
 
-        clay.BeginLayout()
+        if mode != prev_mode {
+            switch mode {
+            case .Card_Smol:
+                rl.SetWindowSize(WIDTH / 2, HEIGHT / 2)
+            case .Card_Beeg:
+                rl.SetWindowSize(WIDTH, HEIGHT)
+            case .Graph:
+                rl.SetWindowSize(i32(GRAPH_WINDOW_SIZE.x), i32(GRAPH_WINDOW_SIZE.y))
+            case .Pages:
+                rl.SetWindowSize(WIDTH * CARDS_PER_PAGE / 6, 2 * HEIGHT / 3)
+            }
+        }
 
-        card_layout(the_card)
+        // clay.BeginLayout()
 
-        commands := clay.EndLayout()
+        // card_layout(the_card)
+
+        // commands := clay.EndLayout()
 
         rl.BeginDrawing(); {
             defer rl.EndDrawing()
 
-            rl.BeginTextureMode(main_texture); {
-                defer rl.EndTextureMode()
+            // rl.BeginTextureMode(main_texture); {
+            //     defer rl.EndTextureMode()
 
-                rl.ClearBackground(rl.WHITE)
+            //     rl.ClearBackground(rl.WHITE)
 
-                clay_raylib_render(&commands)
-            }
+            //     clay_raylib_render(&commands)
+            // }
 
-            rl.ClearBackground(rl.MAGENTA)
+            rl.ClearBackground(rl.BLACK)
 
             switch mode {
             case .Card_Beeg, .Card_Smol:
                 dest_rect: rl.Rectangle = {0, 0, WIDTH / 2, HEIGHT / 2} if mode == .Card_Smol else {0, 0, WIDTH, HEIGHT}
-                rl.SetTextureFilter(main_texture.texture, .BILINEAR)
-                rl.DrawTexturePro(main_texture.texture, {0, 0, 1000, -1400}, dest_rect, {}, 0, rl.WHITE)
+                rl.DrawTexturePro(the_card.texture.texture, {0, 0, 1000, -1400}, dest_rect, {}, 0, rl.WHITE)
+            case .Pages:
+                for i in 0..<CARDS_PER_PAGE {
+                    if page_index * CARDS_PER_PAGE + i >= len(cards) do break
+                    x := i % (CARDS_PER_PAGE / 2)
+                    y := i / (CARDS_PER_PAGE / 2)
+                    page_card_size := Vec2{WIDTH / 3, HEIGHT / 3}
+                    dest_rect := rl.Rectangle{f32(x) * page_card_size.x, f32(y) * page_card_size.y, page_card_size.x *0.99, page_card_size.y * 0.99}
+                    card := cards[page_index * CARDS_PER_PAGE + i]
+                    rl.DrawTexturePro(card.texture.texture, {0, 0, 1000, -1400}, dest_rect, {}, 0, rl.WHITE)
+                }
             case .Graph:
                 graph_origin := Vec2{100, 900}
                 rl.ClearBackground(rl.WHITE)
@@ -327,6 +368,7 @@ main :: proc() {
 
         free_all(context.temp_allocator)
     }
+
 
     rl.CloseWindow()
 
