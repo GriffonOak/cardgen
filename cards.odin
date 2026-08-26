@@ -86,12 +86,11 @@ cards := []Card {
                         kind = .Self,
                     },
                 },
-                text = "2[Energy] => 2[Block] on a [Slot_Hand] part.",
+                text = "2[Energy] =>|2[Block] on a [Slot_Hand] part.",
             },
             {
                 kind = .Passive,
                 text = "While any [Slot_Hand] part has [Block],\ntake -1[Damage] from attacks\nfrom adjacent units.",
-                reminder = "(Damage cannot be reduced below 1.)",
             },
         },
         flavour = "Bend with the wind.",
@@ -104,7 +103,8 @@ cards := []Card {
             {
                 kind = .Passive,
                 timing = .Phase_2,
-                text = "The first time each round\nyou lose [Block] to a melee\nattack, deal 1[Damage][Precision:2]\nto the attacker.",
+                precision = 2,
+                text = "The first time each round\nyou lose [Block] to a melee\nattack, deal 1[Damage] to the attacker.",
                 reminder = "(Melee attacks use [Targeting_Adjacent]/[Targeting_Surrounding])",
             },
         },
@@ -136,8 +136,8 @@ cards := []Card {
         abilities = {
             {
                 kind = .Passive,
-                text = "When making a ranged attack,\nyou may spend 3[Energy] to give the\nattack +1[Targeting_Straight]/[Targeting_Ballistic] and -2[Precision]. If\nthe attack has no [Precision], give it [Precision:3].",
-                reminder = "(Ranged attacks use [Targeting_Straight]/[Targeting_Ballistic])",
+                text = "When using a ranged ability,\nyou may spend 3[Energy] to give the\nability +1[Targeting_Straight]/[Targeting_Ballistic] and -2[Precision]. If\nthe ability has no [Precision], give it [Precision:3].",
+                reminder = "(Ranged abilities use [Targeting_Straight]/[Targeting_Ballistic])",
             },
         },
         flavour = "\"I have a visual.\"",
@@ -149,7 +149,7 @@ cards := []Card {
         abilities = {
             {
                 kind = .Passive,
-                text = "Each round, the first attack\nagainst you with [Precision] gains +2[Precision].",
+                text = "Each round, the first attack\nagainst you with [Precision] gains\n+2[Precision].",
             },
         },
         flavour = "Nice try.",
@@ -195,10 +195,11 @@ cards := []Card {
             {
                 kind = .Passive,
                 timing = .Phase_1,
-                text = "Gain 8[Energy].\nYou may take up to 4[Damage] on this part, then gain[Energy] equal to damage dealt.",
+                text = "Gain 9[Energy]. You may take up\nto 4[Damage] on this part, then\ngain[Energy] equal to damage\ntaken.",
+                reminder = "(If this part destroys itself,\ndo not gain additional [Energy].)",
             },
         },
-        flavour = "\"Just try to keep an eye on it\".",
+        flavour = "Just try to keep an eye on it.",
     },
     Card { name = "Dirk",
         slots = {.Hand},
@@ -214,7 +215,7 @@ cards := []Card {
                         kind = .Adjacent,
                     },
                 },
-                text = "2[Energy] => 1[Damage]. If your WC is 3 or less, you may move 1 space.",
+                text = "2[Energy] =>|1[Damage]. If your WC is 3 or less, 1[Movement].",
             },
         },
         flavour = "Cut and run.",
@@ -302,11 +303,7 @@ cards := []Card {
                         kind = .Adjacent,
                     },
                 },
-                text = "5[Energy] => 3[Damage].",
-            },
-            {
-                kind = .Passive,
-                text = "This part deals +1[Damage]\nto parts with [Block].",
+                text = "5[Energy] => 3[Damage]|This attack deals +1[Damage] to parts with [Block].",
             },
         },
         flavour = "No defence is without weakness.",
@@ -346,7 +343,7 @@ cards := []Card {
                         range = 99,
                     },
                 },
-                text = "4[Energy] => 2[Damage]. If the target is 4+ spaces away, this attack has [Precision:1]",
+                text = "4[Energy] => 2[Damage]|If the target is 4 or more spaces away, this attack gains [Precision:1].",
             },
             // {
             //     kind = .Passive,
@@ -389,12 +386,13 @@ cards := []Card {
             {
                 kind = .Attack,
                 timing = .Phase_2,
+                precision = 2,
                 targeting = {
                     {
                         kind = .Adjacent,
                     },
                 },
-                text = "3[Energy] => 1[Damage][Precision:2]",
+                text = "3[Energy] => 1[Damage]",
             },
         },
         flavour = "They never notice until it's too late.",
@@ -427,6 +425,7 @@ cards := []Card {
             {
                 kind = .Utility,
                 timing = .Phase_2,
+                precision = 1,
                 targeting = {
                     {
                         kind = .Self,
@@ -435,7 +434,7 @@ cards := []Card {
                         kind = .Adjacent,
                     },
                 },
-                text = "4[Energy] => 2[Repair][Precision:1].",
+                text = "4[Energy] => 2[Repair].",
             },
             {
                 kind = .Passive,
@@ -458,7 +457,7 @@ cards := []Card {
                         range = 2,
                     },
                 },
-                text = "1[Energy] => 1[Damage].",
+                text = "1[Energy] => 1[Damage]",
             },
         },
         flavour = "Plink!",
@@ -505,13 +504,14 @@ cards := []Card {
             {
                 kind = .Attack,
                 timing = .Phase_2,
+                precision = 1,
                 targeting = {
                     {
                         kind = .Straight,
                         range = 6,
                     },
                 },
-                text = "5[Energy] => 1[Damage][Precision:1]",
+                text = "5[Energy] => 1[Damage]",
             },
         },
         flavour = "It's rude to stare.",
@@ -566,13 +566,13 @@ cards := []Card {
     Card { name = "Jumping Legs",
         slots = {.Legs},
         weight = 4,
-        max_hp = 3,
+        max_hp = 4,
         price = 1,
         abilities = {
             {
                 kind = .Movement,
                 timing = .Phase_2,
-                text = "3[Energy] => (4 - WC)[Movement]",
+                text = "2[Energy] => (4 - WC)[Movement]",
             },
             {
                 kind = .Passive,
@@ -595,7 +595,7 @@ cards := []Card {
                         kind = .Adjacent,
                     },
                 },
-                text = "3[Energy] => 2[Damage]. Push the target 1 space.",
+                text = "3[Energy] =>|2[Damage]. Push the target\n1 space.",
             },
             {
                 kind = .Movement,
@@ -617,7 +617,7 @@ cards := []Card {
                 text = "3[Energy] => (10 - 2*WC)[Movement]",
             },
         },
-        flavour = "Multiplication goes\nbefore subtraction.",
+        flavour = "Hey, remember BEDMAS?",
     },
     Card { name = "Legs",
         slots = {.Legs},
@@ -628,7 +628,7 @@ cards := []Card {
             {
                 kind = .Movement,
                 timing = .Phase_2,
-                text = "WC[Energy] => (6 - WC)[Movement]",
+                text = "3[Energy] => (6 - WC)[Movement]",
             },
         },
         flavour = "Begin with a single step.",
@@ -642,7 +642,7 @@ cards := []Card {
             {
                 kind = .Movement,
                 timing = .Phase_2,
-                text = "WC[Energy] => (8 - WC)[Movement]",
+                text = "3[Energy] => (8 - WC)[Movement]",
             },
             {
                 kind = .Passive,
@@ -686,7 +686,7 @@ cards := []Card {
             {
                 kind = .Utility,
                 timing = .Phase_2,
-                text = "2[Energy] => Take 1[Damage],1[Damage], then clear all status tokens from this robot.",
+                text = "2[Energy], take 1[Damage],1[Damage] =>|Clear all your status tokens.",
             },
         },
         flavour = "\"It's spelled how it sounds.\"",
@@ -762,7 +762,7 @@ cards := []Card {
                 kind = .Utility,
                 timing = .Phase_2,
                 targeting = {{kind = .Straight, range = 4}},
-                text = "4[Energy] => Target any obstacle. Move in a straight line towards it until you are adjacent. If it is a unit, 1[Damage].",
+                text = "4[Energy] =>|Target any obstacle. Move in a straight line towards it until you are adjacent. If it is a unit, 1[Damage].",
             },
         },
     },
@@ -776,13 +776,14 @@ cards := []Card {
                 kind = .Attack,
                 timing = .Phase_2,
                 targeting = {{kind = .Adjacent}},
-                text = "4[Energy] => 3[Damage].",
+                text = "4[Energy] => 3[Damage]",
             },
             {
                 kind = .Attack,
                 timing = .Phase_2,
+                precision = 1,
                 targeting = {{kind = .Adjacent}},
-                text = "3[Energy] => Move 1-2 spaces in a straight line, then target an enemy unit in the same direction as you moved. 1[Damage][Precision:1].",
+                text = "3[Energy] =>|Move 1-2 spaces in a straight line, then target an enemy unit in the same direction as you moved. 1[Damage].",
                 reminder = "(You must be able to do both.)"
             },
         },
@@ -811,7 +812,7 @@ cards := []Card {
                 kind = .Attack,
                 timing = .Phase_2,
                 targeting = {{kind = .Adjacent}},
-                text = "7[Energy] => WC[Damage]. This attack deals +2[Damage] if your WC is 4 or more."
+                text = "7[Energy] => WC[Damage]|This attack deals +2[Damage] if your WC is 4 or more."
             },
         },
         flavour = "\"That ought to do the trick.\""
@@ -820,7 +821,7 @@ cards := []Card {
         slots = {.Legs},
         weight = 8,
         price = 1,
-        max_hp = 2,
+        max_hp = 3,
         abilities = {
             {
                 kind = .Movement,
@@ -830,7 +831,7 @@ cards := []Card {
             {
                 kind = .Passive,
                 timing = .Phase_2,
-                text = "Once per round, after any activation finishes, you may spend 2[Energy] for 1[Movement]."
+                text = "Once per round, after any activation finishes, you may spend WC[Energy] for 1[Movement]."
             }
         },
     },
@@ -890,7 +891,7 @@ cards := []Card {
                 kind = .Utility,
                 timing = .Phase_2,
                 targeting = {{kind = .Self}},
-                text = "2[Energy] => 2[Block] on a\nnon-[Slot_Hand] part.",
+                text = "2[Energy] =>|2[Block] on a non-[Slot_Hand] part.",
             },
         },
     },

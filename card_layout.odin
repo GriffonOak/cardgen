@@ -21,6 +21,7 @@ CARD_ABILITY_REGION_PADDING :: 20
 ABILITY_MIN_HEIGHT :: 150
 ABILITY_PADDING_VERTICAL :: 20
 ABILITY_PADDING_HORIZONTAL :: 30
+ABILITY_CHILD_GAP :: 10
 ABILITY_BORDER_WIDTH :: 10
 ABILITY_FONT_SIZE :: 80
 ABILITY_REMINDER_FONT_SIZE :: 60
@@ -29,7 +30,7 @@ Custom_Data :: union {
     Card_Ability_Kind,
 }
 
-clay_corner_aligner :: #force_inline proc(alignment: clay.LayoutAlignmentY) -> clay.ElementDeclaration {
+clay_corner_aligner :: proc(alignment: clay.LayoutAlignmentY) -> clay.ElementDeclaration {
     return {
         layout = {
             sizing = {
@@ -78,13 +79,75 @@ clay_card_ability :: proc(ability: Card_Ability) {
                 left = ABILITY_PADDING_HORIZONTAL,
                 right = ABILITY_PADDING_HORIZONTAL,
             },
-            childGap = ABILITY_PADDING_VERTICAL,
+            childGap = ABILITY_CHILD_GAP,
         },
         border = border,
         custom = { custom_data },
         cornerRadius = corner_radius,
         backgroundColor = card_ability_background_colors[ability.kind],
     }) {
+        ability_text_config := clay.TextConfig({
+            fontId = 0,
+            fontSize = ABILITY_FONT_SIZE,
+            textColor = {0, 0, 0, 255},
+        })
+
+        spacer_width: f32 = 0
+
+        if clay.UI()({
+            layout = {
+                childAlignment = {
+                    x = .Center,
+                    y = .Center,
+                },
+                childGap = ABILITY_CHILD_GAP,
+            },
+            floating = {
+                attachTo = .Parent,
+                attachment = {
+                    element = .LeftCenter,
+                    parent = .LeftCenter,
+                },
+                offset = {
+                    ABILITY_PADDING_HORIZONTAL, 0,
+                }
+            },
+        }){
+            // Timing
+            if ability.timing != .None {
+                timing_text := fmt.tprintf("[%v]", ability.timing)
+                clay.TextDynamic(timing_text, ability_text_config)
+                spacer_width += measure_text_string(timing_text, ability_text_config, nil).width
+            }
+    
+            // Targeting
+            if len(ability.targeting) > 0 {
+                builder := strings.builder_make(context.temp_allocator)
+                for targeting, i in ability.targeting {
+                    if i != 0 do fmt.sbprintf(&builder, "/")
+                    fmt.sbprintf(&builder, "[Targeting_%v", targeting.kind)
+                    if targeting.range > 0 do fmt.sbprintf(&builder, ":%v", targeting.range)
+                    fmt.sbprintf(&builder, "]")
+                }
+                if strings.builder_len(builder) > 0 {
+                    fmt.sbprint(&builder, " ")
+                }
+                targeting_text := strings.to_string(builder)
+                clay.TextDynamic(targeting_text, ability_text_config)
+                if spacer_width > 0 do spacer_width += ABILITY_CHILD_GAP
+                spacer_width += measure_text_string(targeting_text, ability_text_config, nil).width
+            }
+    
+            // Precision
+            if ability.precision != 0 {
+                precision_text := fmt.tprintf("[Precision:%v]", ability.precision)
+                clay.TextDynamic(precision_text, ability_text_config)
+                if spacer_width > 0 do spacer_width += ABILITY_CHILD_GAP
+                spacer_width += measure_text_string(precision_text, ability_text_config, nil).width
+            }
+        }
+
+
         if clay.UI ()({
             layout = {
                 sizing = {
@@ -95,58 +158,73 @@ clay_card_ability :: proc(ability: Card_Ability) {
                     x = .Center,
                     y = .Center,
                 },
-                // childGap = ABILITY_PADDING_VERTICAL,
+                childGap = ABILITY_CHILD_GAP,
             },
         }) {
-            builder := strings.builder_make(context.temp_allocator)
-            if ability.timing != .None {
-                fmt.sbprintf(&builder, "[%v]", ability.timing)
-            }
-            for targeting, i in ability.targeting {
-                if i != 0 do fmt.sbprintf(&builder, "/")
-                fmt.sbprintf(&builder, "[Targeting_%v", targeting.kind)
-                if targeting.range > 0 do fmt.sbprintf(&builder, ":%v", targeting.range)
-                fmt.sbprintf(&builder, "]")
-            }
-            if strings.builder_len(builder) > 0 {
-                fmt.sbprint(&builder, " ")
-            }
-            output := strings.to_string(builder)
-            if output != "" {
-                clay.TextDynamic(output, clay.TextConfig({
-                    fontId = 0,
-                    fontSize = ABILITY_FONT_SIZE,
-                    textColor = {0, 0, 0, 255},
-                }))
-            }
+
+            if clay.UI()({
+                layout = {sizing = {width = clay.SizingFixed(spacer_width)}},
+            }) {}
+
+
+            // Growing spacer 1
             if clay.UI()({
                 layout = {sizing = {width = clay.SizingGrow()}},
             }) {}
-            terms := strings.split(ability.text, "=>", context.temp_allocator)
+
+            // Sanity Check
+            terms := strings.split_after(ability.text, "=>", context.temp_allocator)
             if len(terms) > 2 {
                 fmt.println("Improperly formatted card ability!")
             }
-            once_per_round := false
-            if strings.ends_with(terms[0], "1") {
-                terms[0] = terms[0][:len(terms[0])-2]
-                once_per_round = true
+            for &term in terms {
+                term = strings.trim_space(term)
             }
-            clay.TextDynamic(strings.trim_space(terms[0]), clay.TextConfig({
-                fontId = 0,
-                fontSize = ABILITY_FONT_SIZE,
-                textColor = {0, 0, 0, 255},
-            }))
+            lines: []string
             if len(terms) > 1 {
-                clay.TextDynamic(" => ", clay.TextConfig({
-                    fontId = 0,
-                    fontSize = ABILITY_FONT_SIZE,
-                    textColor = {0, 0, 0, 255},
-                }))
-                clay.TextDynamic(strings.trim_space(terms[1]), clay.TextConfig({
-                    fontId = 0,
-                    fontSize = ABILITY_FONT_SIZE,
-                    textColor = {0, 0, 0, 255},
-                }))
+                lines = strings.split(terms[1], "|")
+            }
+            // once_per_round := false
+            // if strings.ends_with(terms[0], "1") {
+            //     terms[0] = terms[0][:len(terms[0])-2]
+            //     once_per_round = true
+            // }
+
+            // Ability Terms
+
+            if clay.UI()({
+                layout = {
+                    layoutDirection = .TopToBottom,
+                    childAlignment = {
+                        x = .Center,
+                    },
+                },
+            }) {
+                if clay.UI()({
+                    layout = {
+                        childAlignment = {
+                            y = .Center,
+                        },
+                        childGap = ABILITY_CHILD_GAP,
+                    },
+                }) {
+                    clay.TextDynamic(fmt.tprintf("%v ", terms[0]), ability_text_config)
+                    if len(lines) > 0 {
+                        clay.TextDynamic(lines[0], clay.TextConfig({
+                            fontId = 0,
+                            fontSize = ABILITY_FONT_SIZE,
+                            textColor = {0, 0, 0, 255},
+                        }))
+                    }
+                }
+                // Basically if the ability text is long we put the output on a new line. Maybe this could be cleaned up somehow.
+                if len(lines) > 1 do for line in lines[1:] {
+                    clay.TextDynamic(line, clay.TextConfig({
+                        fontId = 0,
+                        fontSize = ABILITY_FONT_SIZE,
+                        textColor = {0, 0, 0, 255},
+                    }))
+                }
             }
             if clay.UI()({
                 layout = {sizing = {width = clay.SizingGrow()}},
@@ -158,6 +236,11 @@ clay_card_ability :: proc(ability: Card_Ability) {
                 fontSize = ABILITY_REMINDER_FONT_SIZE,
                 textColor = {0, 0, 0, 255},
             }))
+            // clay.TextDynamic(" I", clay.TextConfig({
+            //     fontId = u16(Font_ID.Italic),
+            //     fontSize = ABILITY_REMINDER_FONT_SIZE,
+            //     textColor = {0, 0, 0, 255},
+            // }))
         }
 
     }

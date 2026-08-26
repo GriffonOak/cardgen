@@ -96,7 +96,7 @@ card_ability_background_colors := #partial [Card_Ability_Kind]clay.Color {
     .Attack = {230, 160, 150, 255},
     .Utility = {150, 160, 230, 255},
     .Movement = {120, 200, 130, 255},
-    .Passive = {230, 170, 230, 255},
+    .Passive = {225, 160, 235, 255},
 }
 
 Card_Ability_Targeting :: struct {
@@ -118,7 +118,7 @@ Card_Ability :: struct {
     kind: Card_Ability_Kind,
     timing: Card_Ability_Timing,
     targeting: []Card_Ability_Targeting,
-    
+    precision: int,
 }
 
 Card :: struct {

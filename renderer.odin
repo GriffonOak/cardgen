@@ -22,20 +22,28 @@ raylib_fonts := [dynamic]Raylib_Font{}
 // Alias for compatibility, default to ascii support
 // measure_text :: measure_text_ascii
 
-measure_text :: proc "c" (text: clay.StringSlice, config: ^clay.TextElementConfig, userData: rawptr) -> clay.Dimensions {
+measure_text_string :: proc "c" (text_str: string, config: ^clay.TextElementConfig, userData: rawptr) -> clay.Dimensions {
 	context = runtime.default_context()
+	context.allocator = context.temp_allocator
 	line_width: f32 = 0
-
-	text_str := string(text.chars[:text.length])
 	for token in split_font_string_into_tokens(text_str) {
 		switch typed_token in token {
 		case string:
 			line_width += measure_text_ascii_string(typed_token, config, userData).width
 		case Icon_Token:
-			line_width += f32(config.fontSize)
+			texture := font_icon_images[typed_token.icon_kind]
+			aspect_ratio := f32(texture.width) / f32(texture.height)
+			line_width += aspect_ratio * f32(config.fontSize)
 		}
 	}
 	return {line_width, f32(config.fontSize)}
+}
+
+measure_text :: proc "c" (text: clay.StringSlice, config: ^clay.TextElementConfig, userData: rawptr) -> clay.Dimensions {
+	
+	text_str := string(text.chars[:text.length])
+
+	return measure_text_string(text_str, config, userData)
 }
 
 measure_text_unicode :: proc "c" (text: clay.StringSlice, config: ^clay.TextElementConfig, userData: rawptr) -> clay.Dimensions {
@@ -175,7 +183,8 @@ clay_raylib_render :: proc(render_commands: ^clay.ClayArray(clay.RenderCommand),
 						offset := (f32(config.fontSize) - dims.width) / 2
 						rl.DrawTextEx(font, fmt.ctprint(str), pos + {offset, 0}, f32(config.fontSize), f32(config.letterSpacing), clay_color_to_rl_color(config.textColor))
 					}
-					pos.x += f32(config.fontSize)
+					aspect_ratio := f32(texture.width) / f32(texture.height)
+					pos.x += aspect_ratio * f32(config.fontSize)
 				}
 			}
 
