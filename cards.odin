@@ -68,7 +68,7 @@ cards := []Card {
             },
             {
                 kind = .Passive,
-                text = "While this part has any [Block], it\nmust be selected in [Precision] attacks.",
+                text = "While this part has [Block], it\nmust be selected in [Precision] attacks.",
             },
         },
         flavour = "It's not cowardice if you're alive.",
@@ -102,9 +102,8 @@ cards := []Card {
         abilities = {
             {
                 kind = .Passive,
-                timing = .Phase_2,
                 precision = 2,
-                text = "The first time each round\nyou lose [Block] to a melee\nattack, deal 1[Damage] to the attacker.",
+                text = "The first time each round\nyou lose [Block] to a melee\nattack, deal 1[Damage] to the\nattacker.",
                 reminder = "(Melee attacks use [Targeting_Adjacent]/[Targeting_Surrounding])",
             },
         },
@@ -434,11 +433,7 @@ cards := []Card {
                         kind = .Adjacent,
                     },
                 },
-                text = "4[Energy] => 2[Repair].",
-            },
-            {
-                kind = .Passive,
-                text = "This part cannot use [Repair]\nit generates on itself.",
+                text = "4[Energy] => 2[Repair] on another part.",
             },
         },
         flavour = "Show me where it hurts.",
@@ -681,7 +676,7 @@ cards := []Card {
         abilities = {
             {
                 kind = .Passive,
-                text = "Clearing status tokens\ncosts 1[Energy] less.",
+                text = "Whenever you clear 1 or more status tokens, deal 1[Damage] to all adjacent units for each status token cleared.",
             },
             {
                 kind = .Utility,
@@ -893,6 +888,35 @@ cards := []Card {
                 targeting = {{kind = .Self}},
                 text = "2[Energy] =>|2[Block] on a non-[Slot_Hand] part.",
             },
+        },
+    },
+    Card { name = "Cloaking Device",
+        slots = {.Mod},
+        weight = 3,
+        price = 1,
+        max_hp = 2,
+        abilities = {
+            {
+                kind = .Passive,
+                text = "When built, place 3[Counter] on this part.",
+            },
+            {
+                kind = .Passive,
+                text = "When moving with [Movement], you may spend 1[Energy] and 1[Counter] from this part to ignore zone of control for that movement.",
+            },
+        },
+    },
+    Card { name = "Demo",
+        slots = {.Mod},
+        weight = 3,
+        price = 1,
+        max_hp = 2,
+        abilities = {
+            {
+                kind = .Utility,
+                text = "This text is too long to fit on just one line.",
+            },
+
         },
     },
 }
