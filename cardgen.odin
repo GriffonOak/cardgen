@@ -60,6 +60,7 @@ Font_Icon_Kind :: enum {
     Movement,
     Precision,
     Fire,
+    Ion,
     Slot_Head,
     Slot_Torso,
     Slot_Hand,

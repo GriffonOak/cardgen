@@ -173,7 +173,7 @@ clay_card_ability :: proc(ability: Card_Ability) {
             }) {}
 
             // Sanity Check
-            terms := strings.split_after(ability.text, "=>", context.temp_allocator)
+            terms := strings.split(ability.text, "=>", context.temp_allocator)
             if len(terms) > 2 {
                 fmt.println("Improperly formatted card ability!")
             }
@@ -209,6 +209,9 @@ clay_card_ability :: proc(ability: Card_Ability) {
                     },
                 }) {
                     clay.TextDynamic(fmt.tprintf("%v ", terms[0]), ability_text_config)
+                    if len(terms) > 1 {
+                        clay.Text("=> ", ability_text_config)
+                    }
                     if len(lines) > 0 {
                         clay.TextDynamic(lines[0], clay.TextConfig({
                             fontId = 0,
@@ -305,13 +308,13 @@ clay_card_price_icon :: proc(price: int) {
             padding = clay.PaddingAll(CARD_BAR_PADDING),
         },
         cornerRadius = clay.CornerRadiusAll(CARD_BAR_ICON_SIZE / 2),
-        backgroundColor = {0, 80, 20, 255},
+        // backgroundColor = {0, 80, 20, 255},
     }) {
-        clay.TextDynamic(fmt.tprintf("$%d", price), clay.TextConfig({
-            fontId = 0,
-            fontSize = CARD_BAR_ICON_FONT_SIZE,
-            textColor = {255, 255, 255, 255},
-        }))
+        // clay.TextDynamic(fmt.tprintf("$%d", price), clay.TextConfig({
+        //     fontId = 0,
+        //     fontSize = CARD_BAR_ICON_FONT_SIZE,
+        //     textColor = {255, 255, 255, 255},
+        // }))
     }
 }
 
