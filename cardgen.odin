@@ -210,7 +210,7 @@ main :: proc() {
     case .Graph:
         rl.InitWindow(i32(GRAPH_WINDOW_SIZE.x), i32(GRAPH_WINDOW_SIZE.y), "Card")
     case .Pages:
-        rl.InitWindow(WIDTH * CARDS_PER_PAGE / 6, 2 * HEIGHT / 3, "Card")
+        rl.InitWindow(2 * WIDTH * CARDS_PER_PAGE / 6, 4 * HEIGHT / 3, "Card")
     }
 
     for dir_file in font_icons {
@@ -335,7 +335,7 @@ main :: proc() {
                     if page_index * CARDS_PER_PAGE + i >= len(cards) do break
                     x := i % (CARDS_PER_PAGE / 2)
                     y := i / (CARDS_PER_PAGE / 2)
-                    page_card_size := Vec2{WIDTH / 3, HEIGHT / 3}
+                    page_card_size := 2 * Vec2{WIDTH / 3, HEIGHT / 3}
                     dest_rect := rl.Rectangle{f32(x) * page_card_size.x, f32(y) * page_card_size.y, page_card_size.x *0.99, page_card_size.y * 0.99}
                     card := cards[page_index * CARDS_PER_PAGE + i]
                     rl.DrawTexturePro(card.texture.texture, {0, 0, 1000, -1400}, dest_rect, {}, 0, rl.WHITE)
