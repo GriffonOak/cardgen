@@ -92,7 +92,7 @@ cards := []Card {
             },
             {
                 kind = .Passive,
-                text = "While any [Slot_Hand] part has [Block],\ntake -1[Damage] from attacks\nfrom adjacent units.",
+                text = "While any of your [Slot_Hand] parts have [Block], take -1[Damage] from attacks from adjacent units.",
             },
         },
         flavour = "Bend with the wind.",
@@ -104,9 +104,10 @@ cards := []Card {
         price = 1,
         abilities = {
             {
-                kind = .Passive,
+                kind = .Attack,
+                timing = .Interrupt,
                 precision = 2,
-                text = "The first time each round\nyou lose [Block] to a melee\nattack, deal 1[Damage] to the\nattacker.",
+                text = "The first time each round\nyou lose [Block] to a melee\nattack:|0[Energy] => Target the\nattacker. 1[Damage].",
                 reminder = "(Melee attacks use [Targeting_Adjacent]/[Targeting_Surrounding])",
             },
         },
@@ -139,8 +140,9 @@ cards := []Card {
         abilities = {
             {
                 kind = .Passive,
-                text = "When using a ranged ability,\nyou may spend 3[Energy] to give the\nability +1[Targeting_Straight]/[Targeting_Ballistic] and -2[Precision]. If\nthe ability has no [Precision], give it [Precision:3].",
-                reminder = "(Ranged abilities use [Targeting_Straight]/[Targeting_Ballistic])",
+                timing = .Interrupt,
+                text = "When using a ranged ability:|2[Energy] =>|Give the ability +1[Targeting_Straight], +1[Targeting_Ballistic] and -2[Precision]. If it had no [Precision],\ngive it [Precision:3].",
+                reminder = "(Ranged abilities use [Targeting_Straight]/[Targeting_Ballistic])"
             },
         },
         flavour = "\"I have a visual.\"",
@@ -153,7 +155,8 @@ cards := []Card {
         abilities = {
             {
                 kind = .Passive,
-                text = "Each round, the first attack\nagainst you with [Precision] gains\n+2[Precision].",
+                timing = .Interrupt,
+                text = "The first time each round\nyou are targeted by an\nattack with [Precision]:|The attack gains +2[Precision].",
             },
         },
         flavour = "Nice try.",
@@ -171,7 +174,8 @@ cards := []Card {
             },
             {
                 kind = .Passive,
-                text = "Whenever you deal [Damage],\n1[Block] on this part.",
+                timing = .Interrupt,
+                text = "Whenever you deal [Damage]\nto an enemy unit:|1[Block] on this part.",
             },
         },
         flavour = "Its fuel is violence.",
@@ -219,7 +223,7 @@ cards := []Card {
                         kind = .Adjacent,
                     },
                 },
-                text = "2[Energy] =>|1[Damage]. If your WC is 3 or less, 1[Movement].",
+                text = "2[Energy] => 1[Damage]. If your WC\nis 3 or less, 1[Movement].",
             },
         },
         flavour = "Cut and run.",
@@ -307,7 +311,7 @@ cards := []Card {
                         kind = .Adjacent,
                     },
                 },
-                text = "5[Energy] => 3[Damage]|This attack deals +1[Damage] to parts with [Block].",
+                text = "This attack deals +1[Damage]\nto parts with [Block].|5[Energy] => 3[Damage]",
             },
         },
         flavour = "No defence is without weakness.",
@@ -347,7 +351,7 @@ cards := []Card {
                         range = 99,
                     },
                 },
-                text = "4[Energy] => 2[Damage].|If the target is 4 or\nmore spaces away,\nthis attack gains [Precision:1].",
+                text = "This attack gains [Precision:1] when targeting a unit 4 or more spaces away.|4[Energy] => 2[Damage].",
             },
             // {
             //     kind = .Passive,
@@ -376,7 +380,7 @@ cards := []Card {
                         range = 4,
                     },
                 },
-                text = "1[Energy],1[Counter] => 2[Damage].",
+                text = "1[Energy], 1[Counter] => 2[Damage].",
             },
         },
         flavour = "Careful with the trigger.",
@@ -414,8 +418,8 @@ cards := []Card {
             },
             {
                 kind = .Passive,
-                text = "Whenever you lose [Hp] to a\nmelee attack, 1[Block] on this part.",
-                reminder = "(Melee attacks use [Targeting_Adjacent]/[Targeting_Surrounding])",
+                timing = .Interrupt,
+                text = "Whenever you lose [Hp]\nto a [Targeting_Adjacent]/[Targeting_Surrounding] attack:|1[Block] on this part.",
             },
         },
         flavour = "I hardly know 'er!",
@@ -438,7 +442,7 @@ cards := []Card {
                         kind = .Adjacent,
                     },
                 },
-                text = "4[Energy] =>|2[Repair] on\nanother part.",
+                text = "4[Energy] =>|2[Repair] on another\npart.",
             },
         },
         flavour = "Show me where it hurts.",
@@ -472,7 +476,7 @@ cards := []Card {
             {
                 kind = .Utility,
                 timing = .Phase_2,
-                text = "8[Energy] => 3[Block] on all your parts. Once per combat.",
+                text = "Once per combat.|8[Energy] => 3[Block] on all your parts.",
             },
         },
         flavour = "\"You will ride eternal,\nshiny and chrome.\"\n   - Immortan Joe",
@@ -496,7 +500,7 @@ cards := []Card {
                         kind = .Ballistic, range = 2,
                     },
                 },
-                text = "5[Energy], 6[Counter] =>|Target all valid units.\n1[Ion] on every part on each target.",
+                text = "5[Energy], 6[Counter] =>|Target all valid units.\n1[Ion] on every part on\neach target.",
             },
         },
         flavour = "You may feel a slight tingling.",
@@ -516,7 +520,7 @@ cards := []Card {
                         range = 6,
                     },
                 },
-                text = "10[Energy] =>|Ignore obstacles when targeting and target all valid units in one direction. 2[Fire],2[Fire],2[Fire].",
+                text = "10[Energy] =>|Ignoring obstacles, target all valid units in any one direction. 2[Fire],2[Fire],2[Fire].",
             },
         },
         flavour = "It's rude to stare.",
@@ -529,7 +533,8 @@ cards := []Card {
         abilities = {
             {
                 kind = .Passive,
-                text = "Whenever you deal [Damage]\nto an enemy unit, 1[Counter]."
+                timing = .Interrupt,
+                text = "Whenever you deal [Damage]\nto an enemy unit: 1[Counter]."
             },
             {
                 kind = .Attack,
@@ -585,7 +590,7 @@ cards := []Card {
             },
             {
                 kind = .Passive,
-                text = "You may move\nthrough obstacles.",
+                text = "When using [Movement], you may\nmove through obstacles.",
             },
         },
         flavour = "\"It's a lifestyle.\"",
@@ -690,8 +695,10 @@ cards := []Card {
         price = 1,
         abilities = {
             {
-                kind = .Passive,
-                text = "Whenever you clear 1 or more status tokens, deal 1[Damage] to all adjacent units for each status token cleared.",
+                kind = .Attack,
+                timing = .Interrupt,
+                targeting = {{kind = .Surrounding}},
+                text = "Whenever you clear 1\nor more of your status tokens:|0[Energy] => 1[Damage] for each status\ntoken cleared.",
             },
             {
                 kind = .Utility,
@@ -736,7 +743,7 @@ cards := []Card {
             {
                 kind = .Passive,
                 timing = .Phase_1,
-                text = "Remove all [Counter] from this part. You may spend 3[Energy] to place 1[Counter] on this part.",
+                text = "Remove all [Counter] from this part. You may pay 3[Energy] to place 1[Counter] on this part.",
             },
             {
                 kind = .Passive,
@@ -768,7 +775,7 @@ cards := []Card {
                 kind = .Utility,
                 timing = .Phase_2,
                 targeting = {{kind = .Straight, range = 4}},
-                text = "4[Energy] =>|Target any obstacle. Move in a straight line towards it until you are adjacent. If it is a unit, 1[Damage].",
+                text = "4[Energy] =>|Target a valid obstacle. Move in a straight line towards it until you are adjacent.\nIf it is a unit, 1[Damage].",
             },
         },
     },
@@ -789,7 +796,7 @@ cards := []Card {
                 timing = .Phase_2,
                 precision = 1,
                 targeting = {{kind = .Adjacent}},
-                text = "3[Energy] =>|Move 1-2 spaces in a straight line, then target an enemy unit in the same direction as you moved. 1[Damage].",
+                text = "3[Energy] =>|Move 1-2 spaces in a straight line, then target a valid unit in the same direction as you moved. 1[Damage].",
                 reminder = "(You must be able to do both.)"
             },
         },
@@ -818,7 +825,7 @@ cards := []Card {
                 kind = .Attack,
                 timing = .Phase_2,
                 targeting = {{kind = .Adjacent}},
-                text = "7[Energy] => WC[Damage]|This attack deals +2[Damage] if your WC is 4 or more."
+                text = "This attack deals +2[Damage] if your WC is 4 or more.|7[Energy] => WC[Damage]"
             },
         },
         flavour = "\"That ought to do the trick.\""
@@ -835,9 +842,9 @@ cards := []Card {
                 text = "3[Energy] => (5 - WC)[Movement]."
             },
             {
-                kind = .Passive,
-                timing = .Phase_2,
-                text = "Once per round, after any activation finishes, you may spend WC[Energy] for 1[Movement]."
+                kind = .Movement,
+                timing = .Interrupt,
+                text = "Once per round, after any\nactivation finishes:|WC[Energy] => 1[Movement]."
             }
         },
         flavour = "\"Phew!\""
@@ -915,8 +922,9 @@ cards := []Card {
                 text = "When built, 3[Counter].",
             },
             {
-                kind = .Passive,
-                text = "When using [Movement], you may\nspend 1[Energy] and 1[Counter] to\nignore zone of control for\nthat movement.",
+                kind = .Utility,
+                timing = .Interrupt,
+                text = "Before using [Movement]:|1[Energy], 1[Counter] =>|Ignore zone of control\nfor that movement.",
             },
         },
     },
@@ -932,7 +940,7 @@ cards := []Card {
                 targeting = {
                     { kind = .Self, }, { kind = .Ballistic, range = 2 },
                 },
-                text = "You may clear 1 status token and/or add 1 status token of the same type to a part that already has one.",
+                text = "You may clear 1 status token from a valid part.\nYou may add 1 status token of the same type to a valid part that already has one.",
             },
         },
         flavour = "\"I don't feel so good.\"",
@@ -949,7 +957,7 @@ cards := []Card {
                 targeting = {
                     { kind = .Straight, range = 2 },
                 },
-                text = "4[Energy] => 1[Fire], X[Damage].|X is the number of\nstatus tokens on\nthe target."
+                text = "4[Energy] => 1[Fire], X[Damage].|X is the number of status tokens on the target."
             },
         },
         flavour = "Are you feeling it now?"
@@ -972,7 +980,7 @@ cards := []Card {
                 timing = .Phase_2,
                 targeting = { { kind = .Adjacent} },
                 precision = 2,
-                text = "4[Energy] => 1[Fire]X[Damage]|X is the number of [Fire] on the target's part with the most [Fire].",
+                text = "4[Energy] => 1[Fire]X[Damage].|X is the number of [Fire] on the target's part with the most [Fire].",
             },
         },
     },
@@ -1009,7 +1017,7 @@ cards := []Card {
         },
         flavour = "Toasty!"
     },
-    Card { name = "Obtuse Emergency Protocols",
+    Card { name = "Obtuse Emergency\nProtocols",
         slots = {.Mod},
         weight = 1,
         max_hp = 1,
@@ -1017,7 +1025,9 @@ cards := []Card {
         abilities = {
             {
                 kind = .Passive,
-                text = "Clearing status tokens costs -1[Energy] for you and allies within 2 spaces. Clearing status tokens costs +1[Energy] for enemies within 2 spaces.",
+                targeting = {{kind = .Self}, {kind = .Ballistic, range = 2}},
+                text = "The basic action to clear status tokens costs -1[Energy] for valid allies and +1[Energy] for valid enemies.",
+                reminder = "(You are your own ally.)"
             },
         },
     },
@@ -1073,8 +1083,8 @@ cards := []Card {
             {
                 kind = .Attack,
                 timing = .Phase_2,
-                text = "4[Energy] =>|Deal 1[Damage] to all parts with\nstatus tokens on units\nwithin 2 spaces of you.",
-                reminder = "(This includes you.)"
+                targeting = {{kind = .Self}, {kind = .Ballistic, range = 2,}},
+                text = "4[Energy] =>|1[Damage] to all valid parts with status tokens.",
             },
         },
         flavour = "Crank it up."
@@ -1092,7 +1102,8 @@ cards := []Card {
             },
             {
                 kind = .Passive,
-                text = "When your [Energy] is tied with players when checking initiative, each tied player loses 1[Energy].",
+                timing = .Interrupt,
+                text = "When checking initiative,\nif you are tied for most [Energy]:|Each player tied with\nyou loses 1[Energy].",
                 reminder = "(You then take the next activation.)"
             },
         },
@@ -1148,7 +1159,7 @@ cards := []Card {
                 kind = .Attack,
                 timing = .Phase_2,
                 targeting = {{kind = .Ballistic, range = 4}},
-                text = "6[Energy] =>|X[Damage]. X is the distance between you and the target.",
+                text = "6[Energy] => X[Damage].|X is the distance between you and the target.",
             },
         },
         flavour = "Fetchez la vache!"
@@ -1193,7 +1204,8 @@ cards := []Card {
         abilities = {
             {
                 kind = .Passive,
-                text = "Whenever you use a\nmelee attack, 1[Counter].",
+                timing = .Interrupt,
+                text = "Whenever you use a\nmelee attack: 1[Counter].",
             },
             {
                 kind = .Utility,

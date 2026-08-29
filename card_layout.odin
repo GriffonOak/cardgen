@@ -115,7 +115,7 @@ clay_card_ability :: proc(ability: Card_Ability) {
         }){
             // Timing
             if ability.timing != .None {
-                timing_text := fmt.tprintf("[%v]", ability.timing)
+                timing_text := fmt.tprintf("[Timing_%v]", ability.timing)
                 clay.TextDynamic(timing_text, ability_text_config)
                 spacer_width += measure_text_string(timing_text, ability_text_config, nil).width
             }
@@ -147,7 +147,6 @@ clay_card_ability :: proc(ability: Card_Ability) {
             }
         }
 
-
         if clay.UI ()({
             layout = {
                 sizing = {
@@ -173,25 +172,9 @@ clay_card_ability :: proc(ability: Card_Ability) {
             }) {}
 
             // Sanity Check
-            terms := strings.split(ability.text, "=>", context.temp_allocator)
-            if len(terms) > 2 {
-                fmt.println("Improperly formatted card ability!")
-            }
-            for &term in terms {
-                term = strings.trim_space(term)
-            }
-            lines: []string
-            if len(terms) > 1 {
-                lines = strings.split(terms[1], "|")
-            }
-            // once_per_round := false
-            // if strings.ends_with(terms[0], "1") {
-            //     terms[0] = terms[0][:len(terms[0])-2]
-            //     once_per_round = true
-            // }
+            lines := strings.split(ability.text, "|")
 
             // Ability Terms
-
             if clay.UI()({
                 layout = {
                     layoutDirection = .TopToBottom,
@@ -200,33 +183,23 @@ clay_card_ability :: proc(ability: Card_Ability) {
                     },
                 },
             }) {
-                if clay.UI()({
-                    layout = {
-                        childAlignment = {
-                            y = .Center,
+                for line in lines {
+                    terms := strings.split(line, "=>")
+                    for &term in terms do term = strings.trim_space(term)
+                    if clay.UI()({
+                        layout = {
+                            childAlignment = {
+                                y = .Center,
+                            },
+                            childGap = ABILITY_CHILD_GAP,
                         },
-                        childGap = ABILITY_CHILD_GAP,
-                    },
-                }) {
-                    clay.TextDynamic(fmt.tprintf("%v ", terms[0]), ability_text_config)
-                    if len(terms) > 1 {
-                        clay.Text("=> ", ability_text_config)
+                    }) {
+                        clay.TextDynamic(terms[0], ability_text_config)
+                        if len(terms) > 1 {
+                            clay.Text("=> ", ability_text_config)
+                            clay.TextDynamic(terms[1], ability_text_config)
+                        }
                     }
-                    if len(lines) > 0 {
-                        clay.TextDynamic(lines[0], clay.TextConfig({
-                            fontId = 0,
-                            fontSize = ABILITY_FONT_SIZE,
-                            textColor = {0, 0, 0, 255},
-                        }))
-                    }
-                }
-                // Basically if the ability text is long we put the output on a new line. Maybe this could be cleaned up somehow.
-                if len(lines) > 1 do for line in lines[1:] {
-                    clay.TextDynamic(line, clay.TextConfig({
-                        fontId = 0,
-                        fontSize = ABILITY_FONT_SIZE,
-                        textColor = {0, 0, 0, 255},
-                    }))
                 }
             }
             if clay.UI()({
@@ -239,13 +212,7 @@ clay_card_ability :: proc(ability: Card_Ability) {
                 fontSize = ABILITY_REMINDER_FONT_SIZE,
                 textColor = {0, 0, 0, 255},
             }))
-            // clay.TextDynamic(" I", clay.TextConfig({
-            //     fontId = u16(Font_ID.Italic),
-            //     fontSize = ABILITY_REMINDER_FONT_SIZE,
-            //     textColor = {0, 0, 0, 255},
-            // }))
         }
-
     }
 }
 
