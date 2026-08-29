@@ -61,6 +61,7 @@ Font_Icon_Kind :: enum {
     Precision,
     Fire,
     Ion,
+    Virus,
     Slot_Head,
     Slot_Torso,
     Slot_Hand,

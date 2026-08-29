@@ -442,7 +442,7 @@ cards := []Card {
                         kind = .Adjacent,
                     },
                 },
-                text = "4[Energy] =>|2[Repair] on another\npart.",
+                text = "4[Energy] =>|3[Repair] on another\npart.",
             },
         },
         flavour = "Show me where it hurts.",
@@ -500,7 +500,7 @@ cards := []Card {
                         kind = .Ballistic, range = 2,
                     },
                 },
-                text = "5[Energy], 6[Counter] =>|Target all valid units.\n1[Ion] on every part on\neach target.",
+                text = "5[Energy], 6[Counter] => 1[Ion] to all valid parts.",
             },
         },
         flavour = "You may feel a slight tingling.",
@@ -743,7 +743,7 @@ cards := []Card {
             {
                 kind = .Passive,
                 timing = .Phase_1,
-                text = "Remove all [Counter] from this part. You may pay 3[Energy] to place 1[Counter] on this part.",
+                text = "Remove all [Counter]. You may pay 3[Energy] for 1[Counter].",
             },
             {
                 kind = .Passive,
@@ -858,7 +858,7 @@ cards := []Card {
             {
                 kind = .Passive,
                 timing = .Phase_1,
-                text = "Remove all [Counter] from this\npart and gain 10[Energy].\nYou may place 1[Counter] on\nthis part to gain 4[Energy]."
+                text = "Remove all [Counter] and gain 10[Energy].\nYou may place 1[Counter] on\nthis part to gain 4[Energy]."
             },
             {
                 kind = .Passive,
@@ -1116,7 +1116,8 @@ cards := []Card {
         abilities = {
             {
                 kind = .Passive,
-                text = "You get +1[Slot_Hand].",
+                text = "You get +1[Slot_Hand].|This part cannot take [Ion].",
+                reminder = "(If this part is destroyed, immediately\ndestroy parts down to your new limit.)",
             },
         },
         flavour = "\"We think it should be fine.\""
@@ -1129,7 +1130,8 @@ cards := []Card {
         abilities = {
             {
                 kind = .Passive,
-                text = "You get +2[Slot_Mod].",
+                text = "You get +2[Slot_Mod].|This part cannot take [Ion].",
+                reminder = "(If this part is destroyed, immediately\ndestroy parts down to your new limit.)",
             },
         },
         flavour = "What's a few more petabytes, anyway?",
@@ -1214,5 +1216,162 @@ cards := []Card {
             },
         },
         flavour = "Nothing personnel kid."
+    },
+    Card { name = "Memetic AI",
+        slots = {.Mod},
+        weight = 3,
+        max_hp = 1,
+        price = 1,
+        abilities = {
+            {
+                kind = .Utility,
+                timing = .Phase_1,
+                text = "2[Energy] => 1[Counter].",
+            },
+            {
+                kind = .Passive,
+                targeting = {{kind = .Ballistic, range = 2}},
+                text = "While this part has [Counter], it gains a copy of all passive abilities on valid [Slot_Mod] parts.",
+            },
+            {
+                kind = .Passive,
+                timing = .Phase_3,
+                text = "Remove all [Counter].",
+            },
+        },
+        flavour = "Mind if I borrow that?"
+    },
+    Card { name = "Superspreader",
+        slots = {.Hand},
+        weight = 8,
+        max_hp = 8,
+        price = 1,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                targeting = {{kind = .Surrounding}},
+                text = "8[Energy] => 1[Virus],1[Virus],1[Virus].",
+            },
+        },
+        flavour = "Excuse me."
+    },
+    Card { name = "Debilitator",
+        slots = {.Hand},
+        weight = 6,
+        max_hp = 5,
+        price = 1,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                precision = 2,
+                targeting = {{kind = .Straight, range = 3}},
+                text = "7[Energy] => 2[Virus]1[Ion].",
+            },
+        },
+        flavour = "You might need a sick day."
+    },
+    Card { name = "Immune Supressor",
+        slots = {.Mod},
+        weight = 2,
+        max_hp = 1,
+        price = 1,
+        abilities = {
+            {
+                kind = .Passive,
+                targeting = {{kind = .Ballistic, range = 3}},
+                text = "When adding [Virus] at the start of [Timing_Phase_1], valid enemies with [Virus] must add an additional 1[Virus] to themselves.",
+            },
+        },
+    },
+    Card { name = "Plasma Rifle",
+        slots = {.Hand},
+        weight = 5,
+        max_hp = 3,
+        price = 1,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                precision = 3,
+                targeting = {{kind = .Straight, range = 4}},
+                text = "5[Energy] => 1[Damage]1[Fire]1[Ion].",
+            },
+        },
+    },
+    Card { name = "Ignition Protocol",
+        slots = {.Mod},
+        weight = 4,
+        max_hp = 1,
+        price = 1,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                targeting = {{kind = .Ballistic, range = 3}},
+                text = "5[Energy] => 1[Fire] to all parts on the target with [Virus].",
+            },
+        },
+    },
+    Card { name = "Shutdown Protocol",
+        slots = {.Mod},
+        weight = 4,
+        max_hp = 1,
+        price = 1,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                targeting = {{kind = .Ballistic, range = 3}},
+                text = "6[Energy] => 1[Ion] to all parts on the target with [Virus].",
+            },
+        },
+    },
+    Card { name = "Necrotizing Protocol",
+        slots = {.Mod},
+        weight = 4,
+        max_hp = 1,
+        price = 1,
+        abilities = {
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                targeting = {{kind = .Ballistic, range = 3}},
+                text = "3[Energy] => 1[Damage] to all parts on the target with [Virus].",
+            },
+        },
+    },
+    Card { name = "Cleansing Nanites",
+        slots = {.Mod},
+        weight = 4,
+        max_hp = 1,
+        price = 1,
+        abilities = {
+            {
+                kind = .Utility,
+                timing = .Phase_2,
+                targeting = {{kind = .Self}, {kind = .Ballistic, range = 2}},
+                text = "3[Energy] =>|1[Repair] and clear all status tokens on the part.",
+            },
+        },
+    },
+    Card { name = "Plague Grenades",
+        slots = {.Hand},
+        weight = 6,
+        max_hp = 4,
+        price = 1,
+        abilities = {
+            {
+                kind = .Passive,
+                text = "When built, 4[Counter]."
+            },
+            {
+                kind = .Attack,
+                timing = .Phase_2,
+                targeting = { {kind = .Ballistic, range = 4}},
+                text = "6[Energy],1[Counter] =>|2[Virus]. Each unit adjacent to the target must take 1[Virus].",
+            },
+        },
     },
 }
