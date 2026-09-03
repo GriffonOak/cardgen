@@ -1,6 +1,5 @@
 package cardgen
 
-
 cards := []Card {
     Card { name = "Big Gun",
         slots = {.Hand},
@@ -141,7 +140,7 @@ cards := []Card {
             {
                 kind = .Passive,
                 timing = .Interrupt,
-                text = "When using a ranged ability:|2[Energy] =>|Give the ability +1[Targeting_Straight], +1[Targeting_Ballistic] and -2[Precision]. If it had no [Precision],\ngive it [Precision:3].",
+                text = "When you use a ranged ability:|2[Energy] =>|Give the ability +1[Targeting_Straight], +1[Targeting_Ballistic] and -2[Precision]. If it had no [Precision],\ngive it [Precision#3].",
                 reminder = "(Ranged abilities use [Targeting_Straight]/[Targeting_Ballistic])"
             },
         },
@@ -311,7 +310,7 @@ cards := []Card {
                         kind = .Adjacent,
                     },
                 },
-                text = "This attack deals +1[Damage]\nto parts with [Block].|5[Energy] => 3[Damage]",
+                text = "This attack deals +1[Damage]\nto parts with [Block].|5[Energy] => 3[Damage].",
             },
         },
         flavour = "No defence is without weakness.",
@@ -351,12 +350,8 @@ cards := []Card {
                         range = 99,
                     },
                 },
-                text = "This attack gains [Precision:1] when targeting a unit 4 or more spaces away.|4[Energy] => 2[Damage].",
+                text = "This attack gains [Precision#1] when targeting a unit 4 or more spaces away.|4[Energy] => 2[Damage].",
             },
-            // {
-            //     kind = .Passive,
-            //     text = "[Damage] dealt by this part has\n[Precision:1] if the target is 4 or\nmore spaces away.",
-            // },
         },
         flavour = "Don't move.",
     },
@@ -442,7 +437,7 @@ cards := []Card {
                         kind = .Adjacent,
                     },
                 },
-                text = "4[Energy] =>|3[Repair] on another\npart.",
+                text = "4[Energy] => 3[Repair] on another part.",
             },
         },
         flavour = "Show me where it hurts.",
@@ -572,7 +567,7 @@ cards := []Card {
             {
                 kind = .Passive,
                 timing = .Phase_1,
-                text = "Gain 14[Energy].\nThis part loses [Hp:2].",
+                text = "Gain 14[Energy].\nThis part loses [Hp#2].",
             },
         },
         flavour = "There is no Plan B.",
@@ -590,7 +585,7 @@ cards := []Card {
             },
             {
                 kind = .Passive,
-                text = "When using [Movement], you may\nmove through obstacles.",
+                text = "When you use [Movement], you may\nmove through obstacles.",
             },
         },
         flavour = "\"It's a lifestyle.\"",
@@ -660,7 +655,7 @@ cards := []Card {
             },
             {
                 kind = .Passive,
-                text = "When using [Movement], turns along your\npath cost an additional 1[Movement].",
+                text = "When you use [Movement], turns along your\npath cost an additional 1[Movement].",
             },
         },
         flavour = "\"You'll get the hang of it.\"",
@@ -924,7 +919,7 @@ cards := []Card {
             {
                 kind = .Utility,
                 timing = .Interrupt,
-                text = "Before using [Movement]:|1[Energy], 1[Counter] =>|Ignore zone of control\nfor that movement.",
+                text = "Before you use [Movement]:|1[Energy], 1[Counter] =>|Ignore zone of control\nfor that movement.",
             },
         },
     },
@@ -1116,7 +1111,7 @@ cards := []Card {
         abilities = {
             {
                 kind = .Passive,
-                text = "You get +1[Slot_Hand].|This part cannot take [Ion].",
+                text = "You get +1[Slot_Hand].\nThis part cannot take [Ion].",
                 reminder = "(If this part is destroyed, immediately\ndestroy parts down to your new limit.)",
             },
         },
@@ -1130,7 +1125,7 @@ cards := []Card {
         abilities = {
             {
                 kind = .Passive,
-                text = "You get +2[Slot_Mod].|This part cannot take [Ion].",
+                text = "You get +2[Slot_Mod].\nThis part cannot take [Ion].",
                 reminder = "(If this part is destroyed, immediately\ndestroy parts down to your new limit.)",
             },
         },
@@ -1179,7 +1174,7 @@ cards := []Card {
             },
             {
                 kind = .Passive,
-                text = "When using [Movement], you ignore zone of control and may push units with lower [Weight] than you. Units pushed this way take 1[Damage], or 2[Damage] if you have twice their [Weight]."
+                text = "When you use [Movement], you ignore zone of control and may push units with lower [Weight] than you. Units pushed this way take 1[Damage], or 2[Damage] if you have twice their [Weight]."
             },
         },
         flavour = "Get out of my way." 

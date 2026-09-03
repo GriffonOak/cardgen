@@ -52,6 +52,7 @@ Targeting_Kind :: enum {
 Font_Icon_Kind :: enum {
     Weight,
     Hp,
+    Implies,
     Energy,
     Damage,
     Block,
@@ -137,6 +138,8 @@ Card :: struct {
 font_icons := #load_directory("assets/font_icons")
 font_icon_images: [Font_Icon_Kind]rl.Texture2D
 
+token_text_separator :: "#"
+
 split_font_string_into_tokens :: proc(str: string) -> []Text_Token {
     arr := make([dynamic]Text_Token, context.temp_allocator)
 
@@ -162,7 +165,7 @@ split_font_string_into_tokens :: proc(str: string) -> []Text_Token {
 			}
 
             icon_name = icon_name[:icon_name_length]
-            icon_name_tokens := strings.split(icon_name, ":", context.temp_allocator)
+            icon_name_tokens := strings.split(icon_name, token_text_separator, context.temp_allocator)
             icon_number: Maybe(string) = nil
             if len(icon_name_tokens) > 1 {
                 icon_number = icon_name_tokens[1]
@@ -202,22 +205,23 @@ main :: proc() {
     clay.Initialize(arena, {WIDTH, HEIGHT}, {})
     clay.SetMeasureTextFunction(measure_text, nil)
 
-    // rl.InitWindow(WIDTH, HEIGHT, "Card")
 
+    window_name :: "Card"
     switch mode {
     case .Card_Beeg:
-        rl.InitWindow(WIDTH, HEIGHT, "Card")
+        rl.InitWindow(WIDTH, HEIGHT, window_name)
     case .Card_Smol:
-        rl.InitWindow(WIDTH / 2, HEIGHT / 2, "Card")
+        rl.InitWindow(WIDTH / 2, HEIGHT / 2, window_name)
     case .Graph:
-        rl.InitWindow(i32(GRAPH_WINDOW_SIZE.x), i32(GRAPH_WINDOW_SIZE.y), "Card")
+        rl.InitWindow(i32(GRAPH_WINDOW_SIZE.x), i32(GRAPH_WINDOW_SIZE.y), window_name)
     case .Pages:
-        rl.InitWindow(WIDTH * CARDS_PER_PAGE / 6, 2 * HEIGHT / 3, "Card")
+        rl.InitWindow(WIDTH * CARDS_PER_PAGE / 6, 2 * HEIGHT / 3, window_name)
     }
 
     for dir_file in font_icons {
         image := rl.LoadImageFromMemory(".png", raw_data(dir_file.data), i32(len(dir_file.data)))
         texture := rl.LoadTextureFromImage(image)
+        rl.SetTextureFilter(texture, .BILINEAR)
         prefix := strings.to_ada_case(strings.split(dir_file.name, ".", context.temp_allocator)[0], context.temp_allocator)
         enum_value, ok := reflect.enum_from_name(Font_Icon_Kind, prefix)
         if !ok {
@@ -230,6 +234,7 @@ main :: proc() {
     regular_font := rl.LoadFontEx("assets/NotoSans-Regular.ttf", 200, nil, 0)
     italic_font := rl.LoadFontEx("assets/NotoSans-LightItalic.ttf", 200, nil, 0)
     semibold_font := rl.LoadFontEx("assets/NotoSans-SemiBold.ttf", 200, nil, 0)
+
     append(&raylib_fonts, Raylib_Font{u16(Font_ID.Default), regular_font})
     append(&raylib_fonts, Raylib_Font{u16(Font_ID.Italic), italic_font})
     append(&raylib_fonts, Raylib_Font{u16(Font_ID.Bold), semibold_font})

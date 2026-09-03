@@ -86,8 +86,15 @@ clay_card_ability :: proc(ability: Card_Ability) {
         cornerRadius = corner_radius,
         backgroundColor = card_ability_background_colors[ability.kind],
     }) {
+
         ability_text_config := clay.TextConfig({
-            fontId = 0,
+            fontId = u16(Font_ID.Default),
+            fontSize = ABILITY_FONT_SIZE,
+            textColor = {0, 0, 0, 255},
+        })
+
+        bold_text_config := clay.TextConfig({
+            fontId = u16(Font_ID.Bold),
             fontSize = ABILITY_FONT_SIZE,
             textColor = {0, 0, 0, 255},
         })
@@ -126,7 +133,7 @@ clay_card_ability :: proc(ability: Card_Ability) {
                 for targeting, i in ability.targeting {
                     if i != 0 do fmt.sbprintf(&builder, "/")
                     fmt.sbprintf(&builder, "[Targeting_%v", targeting.kind)
-                    if targeting.range > 0 do fmt.sbprintf(&builder, ":%v", targeting.range)
+                    if targeting.range > 0 do fmt.sbprintf(&builder, "%v%v", token_text_separator, targeting.range)
                     fmt.sbprintf(&builder, "]")
                 }
                 if strings.builder_len(builder) > 0 {
@@ -140,13 +147,14 @@ clay_card_ability :: proc(ability: Card_Ability) {
     
             // Precision
             if ability.precision != 0 {
-                precision_text := fmt.tprintf("[Precision:%v]", ability.precision)
+                precision_text := fmt.tprintf("[Precision%v%v]", token_text_separator, ability.precision)
                 clay.TextDynamic(precision_text, ability_text_config)
                 if spacer_width > 0 do spacer_width += ABILITY_CHILD_GAP
                 spacer_width += measure_text_string(precision_text, ability_text_config, nil).width
             }
         }
 
+        // Effect
         if clay.UI ()({
             layout = {
                 sizing = {
@@ -160,7 +168,7 @@ clay_card_ability :: proc(ability: Card_Ability) {
                 childGap = ABILITY_CHILD_GAP,
             },
         }) {
-
+            // Spacer to make room for timing, targeting, & precision
             if clay.UI()({
                 layout = {sizing = {width = clay.SizingFixed(spacer_width)}},
             }) {}
@@ -194,9 +202,11 @@ clay_card_ability :: proc(ability: Card_Ability) {
                             childGap = ABILITY_CHILD_GAP,
                         },
                     }) {
-                        clay.TextDynamic(terms[0], ability_text_config)
+                        text_config := bold_text_config if strings.ends_with(terms[0], ":") else ability_text_config
+
+                        clay.TextDynamic(terms[0], text_config)
                         if len(terms) > 1 {
-                            clay.Text("=> ", ability_text_config)
+                            clay.Text("[Implies] ", ability_text_config)
                             clay.TextDynamic(terms[1], ability_text_config)
                         }
                     }
@@ -206,6 +216,8 @@ clay_card_ability :: proc(ability: Card_Ability) {
                 layout = {sizing = {width = clay.SizingGrow()}},
             }) {}
         }
+
+
         if ability.reminder != "" {
             clay.TextDynamic(ability.reminder, clay.TextConfig({
                 fontId = u16(Font_ID.Italic),
