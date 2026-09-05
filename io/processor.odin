@@ -62,7 +62,7 @@ main :: proc() {
 
     Options :: struct {
         parse_odin: bool `usage"Parse the input odin file, writing it to two .csv files."`,
-        output_odin: bool `usage"Write a new odin file to the output"`
+        parse_csv: bool `usage"Parse the .csv files and write a new odin file to the output."`
     }
 
     opt: Options
@@ -73,5 +73,9 @@ main :: proc() {
 
     if opt.parse_odin {
         parse_odin_input()
+    }
+
+    if opt.parse_csv {
+        parse_csv()
     }
 }

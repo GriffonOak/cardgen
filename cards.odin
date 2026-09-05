@@ -350,7 +350,7 @@ cards := []Card {
                         range = 99,
                     },
                 },
-                text = "This attack gains [Precision#1] when targeting a unit 4 or more spaces away.|4[Energy] => 2[Damage].",
+                text = "4[Energy] => 2[Damage].|This attack gains [Precision#1] when targeting a unit 4 or more spaces away.",
             },
         },
         flavour = "Don't move.",

@@ -8,6 +8,32 @@ import "core:slice"
 
 NEWLINE_REPLACEMENT :: " " //"\\n"
 
+Card_Field_Names :: enum {
+    Name,
+    Slot_1,
+    Slot_2,
+    Weight,
+    Max_Hp,
+    Price,
+    Flavour,
+}
+
+Ability_Field_Names :: enum {
+    Parent_Card,
+    Kind,
+    Timing,
+    Targeting_1,
+    Targeting_2,
+    Precision,
+    Energy_Cost,
+    Additional_Cost,
+    Effect,
+    Trigger,
+    Header,
+    Footer,
+    Reminder,
+}
+
 sanitize :: proc(input: string) -> string {
     temp, _ := strings.replace_all(input, "\n", NEWLINE_REPLACEMENT)
     temp, _ = strings.replace_all(temp, "\"", "\"\"")
